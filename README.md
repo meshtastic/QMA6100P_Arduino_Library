@@ -2,17 +2,17 @@ SparkFun Qwiic KX13x Arduino Library
 ========================================
 <table class="table table-hover table-striped table-bordered">
     <tr align="center">
-      <td><a href="https://www.sparkfun.com/products/17871"><img src="https://cdn.sparkfun.com/assets/parts/1/7/0/6/0/17871-SparkFun_Triple_Axis_Accelerometer_Breakout_-_KX132__Qwiic_-01.jpg"></a></td>
-      <td><a href="https://www.sparkfun.com/products/17589"><img src="https://cdn.sparkfun.com/assets/parts/1/6/6/6/1/17589-SparkFun_Triple_Axis_Accelerometer_Breakout_-_KX134__Qwiic_-01.jpg"></a></td>
+      <td><a href="https://www.sparkfun.com/products/17871"><img src="https://cdn.sparkfun.com/assets/parts/1/7/0/6/0/17871-SparkFun_Triple_Axis_Accelerometer_Breakout_-_QMA6100P__Qwiic_-01.jpg"></a></td>
+      <td><a href="https://www.sparkfun.com/products/17589"><img src="https://cdn.sparkfun.com/assets/parts/1/6/6/6/1/17589-SparkFun_Triple_Axis_Accelerometer_Breakout_-_QMA6100P__Qwiic_-01.jpg"></a></td>
     </tr>
     <tr align="center">
-      <td><a href="https://www.sparkfun.com/products/17871">SparkFun Triple-Axis Accelerometer Breakout - KX132 (Qwiic)</a></td>
-      <td><a href="https://www.sparkfun.com/products/17589">SparkFun Triple-Axis Accelerometer Breakout - KX134 (Qwiic)</a></td>
+      <td><a href="https://www.sparkfun.com/products/17871">SparkFun Triple-Axis Accelerometer Breakout - QMA6100P (Qwiic)</a></td>
+      <td><a href="https://www.sparkfun.com/products/17589">SparkFun Triple-Axis Accelerometer Breakout - QMA6100P (Qwiic)</a></td>
     </tr>
 </table>
 
 
-Arduino library support for the SparkFun Triple-Axis Accelerometer Breakout - KX132 & KX134 (Qwiic). 
+Arduino library support for the SparkFun Triple-Axis Accelerometer Breakout - QMA6100P & QMA6100P (Qwiic). 
 
 Repository Contents
 -------------------
@@ -28,7 +28,7 @@ Documentation
 
 * **[Installing an Arduino Library Guide](https://learn.sparkfun.com/tutorials/installing-an-arduino-library)** - Basic information on how to install an Arduino library.
 * **[Hookup Guide](https://learn.sparkfun.com/tutorials/triple-axis-accelerometer-breakout---kx13x-qwiic-hookup-guide-)** - Basic Hookup Guide for the Triple-Axis Accelerometer Breakout - KX13x (Qwiic).
-* **[Product Repository](https://github.com/sparkfun/Qwiic_KX13X)** - Main repository (including hardware files) for the Triple-Axis Accelerometer Breakout - KX13x (Qwiic).
+* **[Product Repository](https://github.com/sparkfun/Qwiic_QMA6100P)** - Main repository (including hardware files) for the Triple-Axis Accelerometer Breakout - KX13x (Qwiic).
 
 
 Products that use this Library 

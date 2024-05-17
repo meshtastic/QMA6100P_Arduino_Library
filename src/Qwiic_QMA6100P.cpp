@@ -1,9 +1,9 @@
-#include "SparkFun_Qwiic_KX13X.h"
+#include "Qwiic_QMA6100P.h"
 
-uint8_t QwDevKX13X::getUniqueID()
+uint8_t QwDevQMA6100P::getUniqueID()
 {
   uint8_t tempVal;
-  int retVal = readRegisterRegion(SFE_KX13X_WHO_AM_I, &tempVal, 1);
+  int retVal = readRegisterRegion(SFE_QMA6100P_WHO_AM_I, &tempVal, 1);
 
   if (retVal != 0)
     return 0;
@@ -19,29 +19,17 @@ uint8_t QwDevKX13X::getUniqueID()
 //  Parameter:
 //  theBus-The communication bus object
 //  i2cAddress-I2C address for the 6DoF
-void QwDevKX13X::setCommunicationBus(sfe_KX13X::QwIDeviceBus &theBus, uint8_t i2cAddress)
+void QwDevQMA6100P::setCommunicationBus(sfe_QMA6100P::QwIDeviceBus &theBus, uint8_t i2cAddress)
 {
   _sfeBus = &theBus;
   _i2cAddress = i2cAddress;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-// setCommunicationBus()
-//
-// Overloaded option for setting the data bus (theBus) object to a SPI bus object.
-//
-//  Parameter:
-//  theBus-The communication bus object
-//
-void QwDevKX13X::setCommunicationBus(sfe_KX13X::QwIDeviceBus &theBus)
-{
-  _sfeBus = &theBus;
-}
 
 // This function sets various register with regards to these pre-determined
 // settings. These settings are set according to "AN092 Getting Started" guide and can easily
 // have additional presets added.
-bool QwDevKX13X::initialize(uint8_t settings)
+bool QwDevQMA6100P::initialize(uint8_t settings)
 {
 
   int retVal = 0;
@@ -49,12 +37,12 @@ bool QwDevKX13X::initialize(uint8_t settings)
   if (!enableAccel(true))
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = 0; // Reset Value
 
   if (settings == DEFAULT_SETTINGS)
   {
-    retVal = writeRegisterByte(SFE_KX13X_CNTL1, DEFAULT_SETTINGS);
+    retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, DEFAULT_SETTINGS);
     if (retVal == 0) // Check the write was successful
     {
       cntl1.all = DEFAULT_SETTINGS;
@@ -66,7 +54,7 @@ bool QwDevKX13X::initialize(uint8_t settings)
   {
     enablePhysInterrupt();
     routeHardwareInterrupt(0x10);
-    retVal = writeRegisterByte(SFE_KX13X_CNTL1, INT_SETTINGS);
+    retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, INT_SETTINGS);
     if (retVal == 0) // Check the write was successful
     {
       cntl1.all = INT_SETTINGS;
@@ -80,7 +68,7 @@ bool QwDevKX13X::initialize(uint8_t settings)
     routeHardwareInterrupt(0x40); // Buffer full interrupt
     enableSampleBuffer();         // Enable buffer
     setBufferOperationMode(0x00); // FIFO
-    retVal = writeRegisterByte(SFE_KX13X_CNTL1, INT_SETTINGS);
+    retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, INT_SETTINGS);
     if (retVal == 0) // Check the write was successful
     {
       cntl1.all = INT_SETTINGS;
@@ -114,7 +102,7 @@ bool QwDevKX13X::initialize(uint8_t settings)
 // But, the _next_ I2C transaction _does_ get NACK'd...
 // The solution seems to be to keep trying to read CNTL2 and wait for the SRST bit to be cleared.
 
-bool QwDevKX13X::softwareReset()
+bool QwDevQMA6100P::softwareReset()
 {
   enableAccel(false); // Clear the PC1 bit in CNTL1
 
@@ -125,21 +113,21 @@ bool QwDevKX13X::softwareReset()
   if (retVal != 0)
     return false;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL2, 0);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL2, 0);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl2_bitfield_t cntl2;
+  sfe_qma6100p_cntl2_bitfield_t cntl2;
   cntl2.all = 0;
   cntl2.bits.srst = 1; // This is a long winded, but definitive way of setting the software reset bit
 
-  writeRegisterByte(SFE_KX13X_CNTL2, cntl2.all); // Do the reset
+  writeRegisterByte(SFE_QMA6100P_CNTL2, cntl2.all); // Do the reset
 
   uint8_t loopCount = 0;
   while (loopCount < 10) // Reset takes about 2ms. Timeout after 10ms
   {
-    retVal = readRegisterRegion(SFE_KX13X_CNTL2, &cntl2.all, 1); // Try to read CNTL2 (the first read gets NACK'd)
+    retVal = readRegisterRegion(SFE_QMA6100P_CNTL2, &cntl2.all, 1); // Try to read CNTL2 (the first read gets NACK'd)
 
     if ((retVal == 0) && (cntl2.bits.srst == 0)) // Check if the software reset bit has been cleared
       loopCount = 10; // Exit the loop if it has
@@ -165,24 +153,24 @@ bool QwDevKX13X::softwareReset()
 //
 //
 
-bool QwDevKX13X::enableAccel(bool enable)
+bool QwDevQMA6100P::enableAccel(bool enable)
 {
 
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal;
   cntl1.bits.pc1 = enable; // This is a long winded but definitive way of setting/clearing the operating mode bit
   _range = cntl1.bits.gsel; // Update the G-range
   tempVal = cntl1.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
 
   if (retVal != 0)
     return false;
@@ -196,18 +184,18 @@ bool QwDevKX13X::enableAccel(bool enable)
 // Retrieves the current operating mode - low/high power mode
 //
 
-int8_t QwDevKX13X::getOperatingMode()
+int8_t QwDevQMA6100P::getOperatingMode()
 {
 
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return retVal;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal; // This is a long winded but definitive way of getting the operating mode bit
   _range = cntl1.bits.gsel; // Update the G-range
 
@@ -221,29 +209,29 @@ int8_t QwDevKX13X::getOperatingMode()
 //
 // Parameter:
 // range - sets the range of the accelerometer 2g - 32g depending
-// on the version. 8g - 64g for the KX134.
+// on the version. 8g - 64g for the QMA6100P.
 //
-bool QwDevKX13X::setRange(uint8_t range)
+bool QwDevQMA6100P::setRange(uint8_t range)
 {
 
   uint8_t tempVal;
   int retVal;
 
-  if (range > SFE_KX132_RANGE16G) // Same as SFE_KX134_RANGE64G
+  if (range > SFE_QMA6100P_RANGE16G) // Same as SFE_QMA6100P_RANGE64G
     return false;
 
   // Read - Modify - Write
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal;
   cntl1.bits.gsel =  range; // This is a long winded but definitive way of setting the range (g select)
   tempVal = cntl1.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
 
   if (retVal != 0)
     return false;
@@ -261,23 +249,23 @@ bool QwDevKX13X::setRange(uint8_t range)
 // Parameter:
 // enable - enable/disables the data ready bit.
 //
-bool QwDevKX13X::enableDataEngine(bool enable)
+bool QwDevQMA6100P::enableDataEngine(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal;
   cntl1.bits.drdye =  enable; // This is a long winded but definitive way of setting/clearing the data ready engine bit
   _range = cntl1.bits.gsel; // Update the G-range
   tempVal = cntl1.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
 
   if (retVal != 0)
     return false;
@@ -293,23 +281,23 @@ bool QwDevKX13X::enableDataEngine(bool enable)
 // Parameter:
 // enable - enables the tap/double tap feature
 //
-bool QwDevKX13X::enableTapEngine(bool enable)
+bool QwDevQMA6100P::enableTapEngine(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal;
   cntl1.bits.tdte =  enable; // This is a long winded but definitive way of setting/clearing the tap engine bit
   _range = cntl1.bits.gsel; // Update the G-range
   tempVal = cntl1.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
 
   if (retVal != 0)
     return false;
@@ -325,23 +313,23 @@ bool QwDevKX13X::enableTapEngine(bool enable)
 // Parameter:
 // enable - enables the tilt feature
 //
-bool QwDevKX13X::enableTiltEngine(bool enable)
+bool QwDevQMA6100P::enableTiltEngine(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl1_bitfield_t cntl1;
+  sfe_qma6100p_cntl1_bitfield_t cntl1;
   cntl1.all = tempVal;
   cntl1.bits.tpe =  enable; // This is a long winded but definitive way of setting/clearing the tilt engine bit
   _range = cntl1.bits.gsel; // Update the G-range
   tempVal = cntl1.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
 
   if (retVal != 0)
     return false;
@@ -357,22 +345,22 @@ bool QwDevKX13X::enableTiltEngine(bool enable)
 // Parameter:
 // enable - enables/disables the wake detection feature
 //
-bool QwDevKX13X::enableWakeEngine(bool enable)
+bool QwDevQMA6100P::enableWakeEngine(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL4, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL4, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl4_bitfield_t cntl4;
+  sfe_qma6100p_cntl4_bitfield_t cntl4;
   cntl4.all = tempVal;
   cntl4.bits.wufe =  enable; // This is a long winded but definitive way of setting/clearing the wake-up engine bit
   tempVal = cntl4.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL4, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL4, tempVal);
 
   if (retVal != 0)
     return false;
@@ -388,22 +376,22 @@ bool QwDevKX13X::enableWakeEngine(bool enable)
 // Parameter:
 // enable - enables/disables the sleep feature
 //
-bool QwDevKX13X::enableSleepEngine(bool enable)
+bool QwDevQMA6100P::enableSleepEngine(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL4, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL4, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl4_bitfield_t cntl4;
+  sfe_qma6100p_cntl4_bitfield_t cntl4;
   cntl4.all = tempVal;
   cntl4.bits.btse =  enable; // This is a long winded but definitive way of setting/clearing the back-to-sleep engine bit
   tempVal = cntl4.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL4, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL4, tempVal);
 
   if (retVal != 0)
     return false;
@@ -419,7 +407,7 @@ bool QwDevKX13X::enableSleepEngine(bool enable)
 // Parameter:
 // rate - determines the rate to be applied.
 //
-bool QwDevKX13X::setOutputDataRate(uint8_t rate)
+bool QwDevQMA6100P::setOutputDataRate(uint8_t rate)
 {
 
   if (rate > 15)
@@ -428,17 +416,17 @@ bool QwDevKX13X::setOutputDataRate(uint8_t rate)
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_ODCNTL, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_ODCNTL, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_odcntl_bitfield_t odcntl;
+  sfe_qma6100p_odcntl_bitfield_t odcntl;
   odcntl.all = tempVal;
   odcntl.bits.osa =  rate; // This is a long winded but definitive way of updating the ODR
   tempVal = odcntl.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_ODCNTL, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_ODCNTL, tempVal);
 
   if (retVal != 0)
     return false;
@@ -454,7 +442,7 @@ bool QwDevKX13X::setOutputDataRate(uint8_t rate)
 // Parameter:
 // rate - determines the rate to be applied.
 //
-bool QwDevKX13X::setTapDataRate(uint8_t rate)
+bool QwDevQMA6100P::setTapDataRate(uint8_t rate)
 {
 
   if (rate > 7)
@@ -463,17 +451,17 @@ bool QwDevKX13X::setTapDataRate(uint8_t rate)
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL3, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL3, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl3_bitfield_t cntl3;
+  sfe_qma6100p_cntl3_bitfield_t cntl3;
   cntl3.all = tempVal;
   cntl3.bits.otdt = rate; // This is a long winded but definitive way of updating the tap ODR
   tempVal = cntl3.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL3, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL3, tempVal);
 
   if (retVal != 0)
     return false;
@@ -489,7 +477,7 @@ bool QwDevKX13X::setTapDataRate(uint8_t rate)
 // Parameter:
 // rate - determines the rate to be applied.
 //
-bool QwDevKX13X::setTiltDataRate(uint8_t rate)
+bool QwDevQMA6100P::setTiltDataRate(uint8_t rate)
 {
 
   if (rate > 3)
@@ -498,17 +486,17 @@ bool QwDevKX13X::setTiltDataRate(uint8_t rate)
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL3, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL3, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl3_bitfield_t cntl3;
+  sfe_qma6100p_cntl3_bitfield_t cntl3;
   cntl3.all = tempVal;
   cntl3.bits.otp = rate; // This is a long winded but definitive way of updating the tap ODR
   tempVal = cntl3.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL3, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL3, tempVal);
 
   if (retVal != 0)
     return false;
@@ -524,7 +512,7 @@ bool QwDevKX13X::setTiltDataRate(uint8_t rate)
 // Parameter:
 // rate - determines the rate to be applied.
 //
-bool QwDevKX13X::setWakeDataRate(uint8_t rate)
+bool QwDevQMA6100P::setWakeDataRate(uint8_t rate)
 {
 
   if (rate > 7)
@@ -533,17 +521,17 @@ bool QwDevKX13X::setWakeDataRate(uint8_t rate)
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL3, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL3, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl3_bitfield_t cntl3;
+  sfe_qma6100p_cntl3_bitfield_t cntl3;
   cntl3.all = tempVal;
   cntl3.bits.owuf = rate; // This is a long winded but definitive way of updating the wake-up ODR
   tempVal = cntl3.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL3, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL3, tempVal);
 
   if (retVal != 0)
     return false;
@@ -555,17 +543,17 @@ bool QwDevKX13X::setWakeDataRate(uint8_t rate)
 //
 // Retrieves the output data rate of the accelerometer.
 //
-float QwDevKX13X::getOutputDataRate()
+float QwDevQMA6100P::getOutputDataRate()
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_ODCNTL, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_ODCNTL, &tempVal, 1);
 
   if (retVal != 0)
     return 0.0;
 
-  sfe_kx13x_odcntl_bitfield_t odcntl;
+  sfe_qma6100p_odcntl_bitfield_t odcntl;
   odcntl.all = tempVal; // This is a long winded but definitive way of getting the ODR
 
   return (0.781 * (pow(2, (float)odcntl.bits.osa)));
@@ -580,12 +568,12 @@ float QwDevKX13X::getOutputDataRate()
 // pinVal - register value to set, note that this overwrites
 // everything in the register.
 //
-bool QwDevKX13X::configureInterruptPin(uint8_t pinVal)
+bool QwDevQMA6100P::configureInterruptPin(uint8_t pinVal)
 {
 
   int retVal;
 
-  retVal = writeRegisterByte(SFE_KX13X_INC1, pinVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_INC1, pinVal);
 
   if (retVal != 0)
     return false;
@@ -602,7 +590,7 @@ bool QwDevKX13X::configureInterruptPin(uint8_t pinVal)
 // enable - Enables interrupts to report to the physical interrupt pins
 // pin - This determines which pin to route the interrupts.
 //
-bool QwDevKX13X::enablePhysInterrupt(bool enable, uint8_t pin)
+bool QwDevQMA6100P::enablePhysInterrupt(bool enable, uint8_t pin)
 {
   int retVal = -1;
   uint8_t tempVal;
@@ -612,32 +600,32 @@ bool QwDevKX13X::enablePhysInterrupt(bool enable, uint8_t pin)
 
   if (pin == 1)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC1, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC1, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc1_bitfield_t inc1;
+    sfe_qma6100p_inc1_bitfield_t inc1;
     inc1.all = tempVal;
     inc1.bits.ien1 = enable; // This is a long winded but definitive way of setting/clearing the enable bit
     tempVal = inc1.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC1, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC1, tempVal);
   }
 
   if (pin == 2)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC5, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC5, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc5_bitfield_t inc5;
+    sfe_qma6100p_inc5_bitfield_t inc5;
     inc5.all = tempVal;
     inc5.bits.ien2 = enable; // This is a long winded but definitive way of setting/clearing the enable bit
     tempVal = inc5.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC5, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC5, tempVal);
   }
 
   return (retVal == 0);
@@ -652,7 +640,7 @@ bool QwDevKX13X::enablePhysInterrupt(bool enable, uint8_t pin)
 // enable - Enables interrupts to report to the physical interrupt pins
 // pin - This determines which pin to route the interrupts.
 //
-bool QwDevKX13X::setPinMode(bool activeHigh, uint8_t pin)
+bool QwDevQMA6100P::setPinMode(bool activeHigh, uint8_t pin)
 {
   int retVal = -1;
   uint8_t tempVal;
@@ -662,32 +650,32 @@ bool QwDevKX13X::setPinMode(bool activeHigh, uint8_t pin)
 
   if (pin == 1)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC1, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC1, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc1_bitfield_t inc1;
+    sfe_qma6100p_inc1_bitfield_t inc1;
     inc1.all = tempVal;
     inc1.bits.iea1 = activeHigh; // This is a long winded but definitive way of setting/clearing the level bit
     tempVal = inc1.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC1, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC1, tempVal);
   }
 
   if (pin == 2)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC5, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC5, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc5_bitfield_t inc5;
+    sfe_qma6100p_inc5_bitfield_t inc5;
     inc5.all = tempVal;
     inc5.bits.iea2 = activeHigh; // This is a long winded but definitive way of setting/clearing the level bit
     tempVal = inc5.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC5, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC5, tempVal);
   }
 
   return (retVal == 0);
@@ -703,7 +691,7 @@ bool QwDevKX13X::setPinMode(bool activeHigh, uint8_t pin)
 // Parameters:
 // latch - False enables latch behavior, True enables pulse behavior (default)
 //
-bool QwDevKX13X::setLatchControl(bool pulsed, uint8_t pin)
+bool QwDevQMA6100P::setLatchControl(bool pulsed, uint8_t pin)
 {
   int retVal = -1;
   uint8_t tempVal;
@@ -713,32 +701,32 @@ bool QwDevKX13X::setLatchControl(bool pulsed, uint8_t pin)
 
   if (pin == 1)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC1, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC1, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc1_bitfield_t inc1;
+    sfe_qma6100p_inc1_bitfield_t inc1;
     inc1.all = tempVal;
     inc1.bits.iel1 = pulsed; // This is a long winded but definitive way of setting/clearing the latch bit
     tempVal = inc1.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC1, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC1, tempVal);
   }
 
   if (pin == 2)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC5, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC5, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc5_bitfield_t inc5;
+    sfe_qma6100p_inc5_bitfield_t inc5;
     inc5.all = tempVal;
     inc5.bits.iel2 = pulsed; // This is a long winded but definitive way of setting/clearing the latch bit
     tempVal = inc5.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC5, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC5, tempVal);
   }
 
   return (retVal == 0);
@@ -753,7 +741,7 @@ bool QwDevKX13X::setLatchControl(bool pulsed, uint8_t pin)
 // width - The width setting to be applied.
 // pin - the pin to be configured.
 //
-bool QwDevKX13X::setPulseWidth(uint8_t width, uint8_t pin)
+bool QwDevQMA6100P::setPulseWidth(uint8_t width, uint8_t pin)
 {
   int retVal = -1;
   uint8_t tempVal;
@@ -763,32 +751,32 @@ bool QwDevKX13X::setPulseWidth(uint8_t width, uint8_t pin)
 
   if (pin == 1)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC1, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC1, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc1_bitfield_t inc1;
+    sfe_qma6100p_inc1_bitfield_t inc1;
     inc1.all = tempVal;
     inc1.bits.pw1 = width; // This is a long winded but definitive way of setting the pulse width
     tempVal = inc1.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC1, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC1, tempVal);
   }
 
   if (pin == 2)
   {
-    retVal = readRegisterRegion(SFE_KX13X_INC5, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_INC5, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_inc5_bitfield_t inc5;
+    sfe_qma6100p_inc5_bitfield_t inc5;
     inc5.all = tempVal;
     inc5.bits.pw2 = width; // This is a long winded but definitive way of setting the pulse width
     tempVal = inc5.all;
 
-    retVal = writeRegisterByte(SFE_KX13X_INC5, tempVal);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC5, tempVal);
   }
 
   return (retVal == 0);
@@ -804,7 +792,7 @@ bool QwDevKX13X::setPulseWidth(uint8_t width, uint8_t pin)
 // rdr - The selected interrupt - watermark, tap/double tap, tilt, data ready etc.
 // pin - The physical hardware pin that will receive the interrupt.
 //
-bool QwDevKX13X::routeHardwareInterrupt(uint8_t rdr, uint8_t pin)
+bool QwDevQMA6100P::routeHardwareInterrupt(uint8_t rdr, uint8_t pin)
 {
 
   int retVal;
@@ -814,7 +802,7 @@ bool QwDevKX13X::routeHardwareInterrupt(uint8_t rdr, uint8_t pin)
 
   if (pin == 1)
   {
-    retVal = writeRegisterByte(SFE_KX13X_INC4, rdr);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC4, rdr);
 
     if (retVal != 0)
       return false;
@@ -822,7 +810,7 @@ bool QwDevKX13X::routeHardwareInterrupt(uint8_t rdr, uint8_t pin)
 
   if (pin == 2)
   {
-    retVal = writeRegisterByte(SFE_KX13X_INC6, rdr);
+    retVal = writeRegisterByte(SFE_QMA6100P_INC6, rdr);
 
     if (retVal != 0)
       return false;
@@ -836,13 +824,13 @@ bool QwDevKX13X::routeHardwareInterrupt(uint8_t rdr, uint8_t pin)
 //
 // Clears any latched interrupt by reading the INT_REL register.
 //
-bool QwDevKX13X::clearInterrupt()
+bool QwDevQMA6100P::clearInterrupt()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INT_REL, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INT_REL, &tempVal, 1);
 
   if (retVal != 0)
     return false;
@@ -858,22 +846,22 @@ bool QwDevKX13X::clearInterrupt()
 // Parameter:
 // enable - enables/disables directional tap reporting.
 //
-bool QwDevKX13X::enableDirecTapInterupt(bool enable)
+bool QwDevQMA6100P::enableDirecTapInterupt(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_TDTRC, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_TDTRC, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_tdtrc_bitfield_t tdtrc;
+  sfe_qma6100p_tdtrc_bitfield_t tdtrc;
   tdtrc.all = tempVal;
   tdtrc.bits.stre = enable; // This is a long winded but definitive way of setting/clearing the enable bit
   tempVal = tdtrc.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_TDTRC, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_TDTRC, tempVal);
 
   if (retVal != 0)
     return false;
@@ -889,22 +877,22 @@ bool QwDevKX13X::enableDirecTapInterupt(bool enable)
 // Parameter:
 // enable - enables/disables the double tap interrupt
 //
-bool QwDevKX13X::enableDoubleTapInterrupt(bool enable)
+bool QwDevQMA6100P::enableDoubleTapInterrupt(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_TDTRC, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_TDTRC, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_tdtrc_bitfield_t tdtrc;
+  sfe_qma6100p_tdtrc_bitfield_t tdtrc;
   tdtrc.all = tempVal;
   tdtrc.bits.dtre = enable; // This is a long winded but definitive way of setting/clearing the enable bit
   tempVal = tdtrc.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_TDTRC, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_TDTRC, tempVal);
 
   if (retVal != 0)
     return false;
@@ -920,18 +908,18 @@ bool QwDevKX13X::enableDoubleTapInterrupt(bool enable)
 // on read.
 //
 //
-bool QwDevKX13X::dataReady()
+bool QwDevQMA6100P::dataReady()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return ins2.bits.drdy;
@@ -943,18 +931,18 @@ bool QwDevKX13X::dataReady()
 // Checks the free fall interrupt bit indicating free fall
 // has been detected.
 //
-bool QwDevKX13X::freeFall()
+bool QwDevQMA6100P::freeFall()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return ins2.bits.ffs;
@@ -966,18 +954,18 @@ bool QwDevKX13X::freeFall()
 // Checks the buffer full interrupt bit indicating that the
 // buff is full.
 //
-bool QwDevKX13X::bufferFull()
+bool QwDevQMA6100P::bufferFull()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return ins2.bits.bfi;
@@ -989,18 +977,18 @@ bool QwDevKX13X::bufferFull()
 // Checks the watermark interrupt bit indicating it has been reached.
 // buff is full.
 //
-bool QwDevKX13X::waterMarkReached()
+bool QwDevQMA6100P::waterMarkReached()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return ins2.bits.wmi;
@@ -1012,18 +1000,18 @@ bool QwDevKX13X::waterMarkReached()
 // Checks the tap interrupt bit indicating that a tap has
 // been detected.
 //
-bool QwDevKX13X::tapDetected()
+bool QwDevQMA6100P::tapDetected()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return (ins2.bits.tdts == 0x01); // Single tap
@@ -1035,13 +1023,13 @@ bool QwDevKX13X::tapDetected()
 // If the tap direction bit is enabled, this register will report
 // the direction of the detected tap.
 //
-int8_t QwDevKX13X::getDirection()
+int8_t QwDevQMA6100P::getDirection()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS1, &tempVal, 1);
 
   if (retVal != 0)
     return retVal;
@@ -1056,18 +1044,18 @@ int8_t QwDevKX13X::getDirection()
 // detected a tap, it will report an "unknown" state. in that
 // case this function will return true. good for error checking.
 //
-bool QwDevKX13X::unknownTap()
+bool QwDevQMA6100P::unknownTap()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return (ins2.bits.tdts == 0x03); // undefined tap event
@@ -1079,18 +1067,18 @@ bool QwDevKX13X::unknownTap()
 // Checks the double tap interrupt bit indicating that
 // a double tap has been detected.
 //
-bool QwDevKX13X::doubleTapDetected()
+bool QwDevQMA6100P::doubleTapDetected()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return (ins2.bits.tdts == 0x02); // Double tap
@@ -1102,18 +1090,18 @@ bool QwDevKX13X::doubleTapDetected()
 // Checks the tilt change interrupt bit indicating that
 // the accelerometer has been tipped.
 //
-bool QwDevKX13X::tiltChange()
+bool QwDevQMA6100P::tiltChange()
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_INS2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_INS2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_ins2_bitfield_t ins2;
+  sfe_qma6100p_ins2_bitfield_t ins2;
   ins2.all = tempVal;
 
   return (ins2.bits.tps); // Tilt position status
@@ -1129,7 +1117,7 @@ bool QwDevKX13X::tiltChange()
 // will be store in the buffer. Can not exceed 171 for 8 bit resolution
 // and 86 for 16 bit resolution.
 //
-bool QwDevKX13X::setBufferThreshold(uint8_t threshold)
+bool QwDevQMA6100P::setBufferThreshold(uint8_t threshold)
 {
 
   int retVal;
@@ -1138,12 +1126,12 @@ bool QwDevKX13X::setBufferThreshold(uint8_t threshold)
   if ((threshold < 2) || (threshold > 171))
     return false;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
 
   // BRES – determines the resolution of the acceleration data samples collected by the sample buffer.
@@ -1153,7 +1141,7 @@ bool QwDevKX13X::setBufferThreshold(uint8_t threshold)
   if ((threshold > 86) && (bufCntl2.bits.bres == 1)) // 1 = 16bit resolution, max samples: 86
     threshold = 86;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CNTL1, threshold);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CNTL1, threshold);
 
   if (retVal != 0)
     return false;
@@ -1169,7 +1157,7 @@ bool QwDevKX13X::setBufferThreshold(uint8_t threshold)
 // Parameter:
 // operationMode - Determines the operation mode to set.
 //
-bool QwDevKX13X::setBufferOperationMode(uint8_t operationMode)
+bool QwDevQMA6100P::setBufferOperationMode(uint8_t operationMode)
 {
 
   int retVal;
@@ -1178,17 +1166,17 @@ bool QwDevKX13X::setBufferOperationMode(uint8_t operationMode)
   if (operationMode > 2)
     return false;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return true;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
   bufCntl2.bits.bm = operationMode; // This is a long winded but definitive way of setting/clearing the operating mode
   tempVal = bufCntl2.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CNTL2, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CNTL2, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1204,22 +1192,22 @@ bool QwDevKX13X::setBufferOperationMode(uint8_t operationMode)
 // Parameter:
 // sixteenBit - Determines whether the resolution is 16 (true) or 8 bit (false).
 //
-bool QwDevKX13X::setBufferResolution(bool sixteenBit)
+bool QwDevQMA6100P::setBufferResolution(bool sixteenBit)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
   bufCntl2.bits.bres = sixteenBit; // This is a long winded but definitive way of setting/clearing the resolution bit
   tempVal = bufCntl2.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CNTL2, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CNTL2, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1235,22 +1223,22 @@ bool QwDevKX13X::setBufferResolution(bool sixteenBit)
 // Parameter:
 // enable - enable/disables the buffer full interrupt bit.
 //
-bool QwDevKX13X::enableBufferInt(bool enable)
+bool QwDevQMA6100P::enableBufferInt(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
   bufCntl2.bits.bfie = enable; // This is a long winded but definitive way of setting/clearing the buffer interrupt enable bit
   tempVal = bufCntl2.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CNTL2, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CNTL2, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1266,22 +1254,22 @@ bool QwDevKX13X::enableBufferInt(bool enable)
 // Parameter:
 // enable - enable/disables the buffer.
 //
-bool QwDevKX13X::enableSampleBuffer(bool enable)
+bool QwDevQMA6100P::enableSampleBuffer(bool enable)
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
   bufCntl2.bits.bufe = enable; // This is a long winded but definitive way of setting/clearing the buffer enable bit
   tempVal = bufCntl2.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CNTL2, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CNTL2, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1294,13 +1282,13 @@ bool QwDevKX13X::enableSampleBuffer(bool enable)
 //
 // Gets the number of samples in the Buffer.
 //
-uint16_t QwDevKX13X::getSampleLevel()
+uint16_t QwDevQMA6100P::getSampleLevel()
 {
   int retVal;
   uint8_t tempVal[2] = {0};
   uint16_t numSamples;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_STATUS_1, tempVal, 2);
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_STATUS_1, tempVal, 2);
 
   if (retVal != 0)
     return 0;
@@ -1316,12 +1304,12 @@ uint16_t QwDevKX13X::getSampleLevel()
 //
 // Clears the samples in the buffer.
 //
-bool QwDevKX13X::clearBuffer()
+bool QwDevQMA6100P::clearBuffer()
 {
   int retVal;
   uint8_t clear = 1;
 
-  retVal = writeRegisterByte(SFE_KX13X_BUF_CLEAR, clear);
+  retVal = writeRegisterByte(SFE_QMA6100P_BUF_CLEAR, clear);
 
   if (retVal != 0)
     return false;
@@ -1335,28 +1323,28 @@ bool QwDevKX13X::clearBuffer()
 // Runs the command test which verifies the circuitry connected to
 // the accelerometer.
 //
-bool QwDevKX13X::runCommandTest()
+bool QwDevQMA6100P::runCommandTest()
 {
 
   uint8_t tempVal;
   int retVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl2_bitfield_t cntl2;
+  sfe_qma6100p_cntl2_bitfield_t cntl2;
   cntl2.all = tempVal;
   cntl2.bits.cotc = 1; // This is a long winded, but definitive way of setting the COTC bit
   tempVal = cntl2.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL2, tempVal); // Start the test
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL2, tempVal); // Start the test
 
   if (retVal != 0)
     return false;
 
-  retVal = readRegisterRegion(SFE_KX13X_COTR, &tempVal, 1); // Check COTR is 0xAA
+  retVal = readRegisterRegion(SFE_QMA6100P_COTR, &tempVal, 1); // Check COTR is 0xAA
 
   if (retVal != 0)
     return false;
@@ -1364,7 +1352,7 @@ bool QwDevKX13X::runCommandTest()
   if (tempVal != 0xAA)
     return false;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL2, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL2, &tempVal, 1);
 
   if (retVal != 0)
     return false;
@@ -1373,7 +1361,7 @@ bool QwDevKX13X::runCommandTest()
   if (cntl2.bits.cotc != 0) // Check the COTC bit has been cleared
     return false;
 
-  retVal = readRegisterRegion(SFE_KX13X_COTR, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_COTR, &tempVal, 1);
 
   if (retVal != 0)
     return false;
@@ -1401,18 +1389,18 @@ bool QwDevKX13X::runCommandTest()
 // Parameter:
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 //
-bool QwDevKX13X::getRawAccelData(rawOutputData *rawAccelData)
+bool QwDevQMA6100P::getRawAccelData(rawOutputData *rawAccelData)
 {
 
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1); // bufCntl2.bits.bufe indicates if the buffer is enabled
+  retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1); // bufCntl2.bits.bufe indicates if the buffer is enabled
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+  sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
   bufCntl2.all = tempVal;
 
   if (bufCntl2.bits.bufe) // If Buffer is enabled, read there.
@@ -1433,13 +1421,13 @@ bool QwDevKX13X::getRawAccelData(rawOutputData *rawAccelData)
 // Parameter:
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 //
-bool QwDevKX13X::getRawAccelRegisterData(rawOutputData *rawAccelData)
+bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 {
 
   int retVal;
   uint8_t tempRegData[6] = {0};
 
-  retVal = readRegisterRegion(SFE_KX13X_XOUT_L, tempRegData, TOTAL_ACCEL_DATA_16BIT); // Read 3 * 16-bit
+  retVal = readRegisterRegion(SFE_QMA6100P_XOUT_L, tempRegData, TOTAL_ACCEL_DATA_16BIT); // Read 3 * 16-bit
 
   if (retVal != 0)
     return false;
@@ -1471,7 +1459,7 @@ bool QwDevKX13X::getRawAccelRegisterData(rawOutputData *rawAccelData)
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 // sixteenBit - defaults to -1. Set to 0 to read 8-bit data. Set to 1 to read 16-bit data.
 //
-bool QwDevKX13X::getRawAccelBufferData(rawOutputData *rawAccelData, int sixteenBit)
+bool QwDevQMA6100P::getRawAccelBufferData(rawOutputData *rawAccelData, int sixteenBit)
 {
 
   int retVal;
@@ -1489,12 +1477,12 @@ bool QwDevKX13X::getRawAccelBufferData(rawOutputData *rawAccelData, int sixteenB
   else if (sixteenBit == -1) // Need to manually check the resolution
   {
     uint8_t tempVal;
-    retVal = readRegisterRegion(SFE_KX13X_BUF_CNTL2, &tempVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_BUF_CNTL2, &tempVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_buf_cntl2_bitfield_t bufCntl2;
+    sfe_qma6100p_buf_cntl2_bitfield_t bufCntl2;
     bufCntl2.all = tempVal;
     is16bit = bufCntl2.bits.bres; // bufCntl2.bits.bufe indicates if the buffer is enabled
   }
@@ -1504,9 +1492,9 @@ bool QwDevKX13X::getRawAccelBufferData(rawOutputData *rawAccelData, int sixteenB
   }
 
   if (is16bit) // If the buffer contains 16-bit samples
-    retVal = readRegisterRegion(SFE_KX13X_BUF_READ, tempRegData, TOTAL_ACCEL_DATA_16BIT); // Read 3 * 16-bit
+    retVal = readRegisterRegion(SFE_QMA6100P_BUF_READ, tempRegData, TOTAL_ACCEL_DATA_16BIT); // Read 3 * 16-bit
   else
-    retVal = readRegisterRegion(SFE_KX13X_BUF_READ, tempRegData, TOTAL_ACCEL_DATA_8BIT); // Read 3 * 8-bit
+    retVal = readRegisterRegion(SFE_QMA6100P_BUF_READ, tempRegData, TOTAL_ACCEL_DATA_8BIT); // Read 3 * 8-bit
 
   if (retVal != 0)
     return false;
@@ -1538,22 +1526,22 @@ bool QwDevKX13X::getRawAccelBufferData(rawOutputData *rawAccelData, int sixteenB
 //
 // Forces the accelerometer into a sleep state.
 //
-bool QwDevKX13X::forceSleep()
+bool QwDevQMA6100P::forceSleep()
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL5, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL5, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl5_bitfield_t cntl5;
+  sfe_qma6100p_cntl5_bitfield_t cntl5;
   cntl5.all = tempVal;
   cntl5.bits.man_sleep = 1; // Set the manual sleep bit
   tempVal = cntl5.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL5, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL5, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1566,22 +1554,22 @@ bool QwDevKX13X::forceSleep()
 //
 // Forces the accelerometer into a sleep state.
 //
-bool QwDevKX13X::forceWake()
+bool QwDevQMA6100P::forceWake()
 {
   int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_KX13X_CNTL5, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_CNTL5, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_kx13x_cntl5_bitfield_t cntl5;
+  sfe_qma6100p_cntl5_bitfield_t cntl5;
   cntl5.all = tempVal;
   cntl5.bits.man_wake = 1; // Set the manual wake bit
   tempVal = cntl5.all;
 
-  retVal = writeRegisterByte(SFE_KX13X_CNTL5, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_CNTL5, tempVal);
 
   if (retVal != 0)
     return false;
@@ -1600,7 +1588,7 @@ bool QwDevKX13X::forceWake()
 //  length- Size of data in bytes (8 bits): 2 bytes = length of two
 //  retval- -1 = error, 0 = success
 //
-int QwDevKX13X::readRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
+int QwDevQMA6100P::readRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
 {
   return (_sfeBus->readRegisterRegion(_i2cAddress, reg, data, len));
 }
@@ -1616,7 +1604,7 @@ int QwDevKX13X::readRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
 //  length- Size of data in bytes (8 bits): 2 bytes = length of two
 //  retval- -1 = error, 0 = success
 //
-int QwDevKX13X::writeRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
+int QwDevQMA6100P::writeRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
 {
   return (_sfeBus->writeRegisterRegion(_i2cAddress, reg, data, len));
 }
@@ -1632,12 +1620,13 @@ int QwDevKX13X::writeRegisterRegion(uint8_t reg, uint8_t *data, uint16_t len)
 //  length- Size of data in bytes (8 bits): 2 bytes = length of two
 //  retval- -1 = error, 0 = success
 //
-int QwDevKX13X::writeRegisterByte(uint8_t reg, uint8_t data)
+int QwDevQMA6100P::writeRegisterByte(uint8_t reg, uint8_t data)
 {
   return (_sfeBus->writeRegisterByte(_i2cAddress, reg, data) ? 0 : -1);
 }
 
-//***************************************** KX132 *********************************************************
+
+//***************************************** QMA6100P ******************************************************
 
 //////////////////////////////////////////////////////////////////////////////////
 // init()
@@ -1645,12 +1634,12 @@ int QwDevKX13X::writeRegisterByte(uint8_t reg, uint8_t data)
 // Ensures that communication is established with the accelerometer by pinging its
 // address and retrieving its device ID.
 //
-bool QwDevKX132::init(void)
+bool QwDevQMA6100P::init(void)
 {
   if (!_sfeBus->ping(_i2cAddress))
     return false;
 
-  if (getUniqueID() != KX132_WHO_AM_I)
+  if (getUniqueID() != QMA6100P_WHO_AM_I)
     return false;
 
   return true;
@@ -1664,7 +1653,7 @@ bool QwDevKX132::init(void)
 // Parameter:
 // *userData - a pointer to the user's data struct that will hold acceleromter data.
 //
-bool QwDevKX132::getAccelData(outputData *userData)
+bool QwDevQMA6100P::getAccelData(outputData *userData)
 {
 
   bool retVal;
@@ -1691,19 +1680,19 @@ bool QwDevKX132::getAccelData(outputData *userData)
 // *userData - a pointer to the user's data struct that will hold acceleromter data.
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 //
-bool QwDevKX132::convAccelData(outputData *userAccel, rawOutputData *rawAccelData)
+bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccelData)
 {
   if (_range < 0) // If the G-range is unknown, read it
   {
     uint8_t regVal;
     int retVal;
 
-    retVal = readRegisterRegion(SFE_KX13X_CNTL1, &regVal, 1);
+    retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &regVal, 1);
 
     if (retVal != 0)
       return false;
 
-    sfe_kx13x_cntl1_bitfield_t cntl1;
+    sfe_qma6100p_cntl1_bitfield_t cntl1;
     cntl1.all = regVal;
 
     _range = cntl1.bits.gsel; // Record the range
@@ -1711,123 +1700,22 @@ bool QwDevKX132::convAccelData(outputData *userAccel, rawOutputData *rawAccelDat
 
   switch (_range)
   {
-  case SFE_KX132_RANGE2G:
-    userAccel->xData = (float)rawAccelData->xData * convRange2G;
-    userAccel->yData = (float)rawAccelData->yData * convRange2G;
-    userAccel->zData = (float)rawAccelData->zData * convRange2G;
-    break;
-  case SFE_KX132_RANGE4G:
-    userAccel->xData = (float)rawAccelData->xData * convRange4G;
-    userAccel->yData = (float)rawAccelData->yData * convRange4G;
-    userAccel->zData = (float)rawAccelData->zData * convRange4G;
-    break;
-  case SFE_KX132_RANGE8G:
+  case SFE_QMA6100P_RANGE8G:
     userAccel->xData = (float)rawAccelData->xData * convRange8G;
     userAccel->yData = (float)rawAccelData->yData * convRange8G;
     userAccel->zData = (float)rawAccelData->zData * convRange8G;
     break;
-  case SFE_KX132_RANGE16G:
+  case SFE_QMA6100P_RANGE16G:
     userAccel->xData = (float)rawAccelData->xData * convRange16G;
     userAccel->yData = (float)rawAccelData->yData * convRange16G;
     userAccel->zData = (float)rawAccelData->zData * convRange16G;
     break;
-  default:
-    return false;
-  }
-
-  return true;
-}
-
-//***************************************** KX134 ******************************************************
-
-//////////////////////////////////////////////////////////////////////////////////
-// init()
-//
-// Ensures that communication is established with the accelerometer by pinging its
-// address and retrieving its device ID.
-//
-bool QwDevKX134::init(void)
-{
-  if (!_sfeBus->ping(_i2cAddress))
-    return false;
-
-  if (getUniqueID() != KX134_WHO_AM_I)
-    return false;
-
-  return true;
-}
-
-//////////////////////////////////////////////////////////////////////////////////
-// getAccelData()
-//
-// Retrieves the raw accelerometer data and calls a conversion function to convert the raw values.
-//
-// Parameter:
-// *userData - a pointer to the user's data struct that will hold acceleromter data.
-//
-bool QwDevKX134::getAccelData(outputData *userData)
-{
-
-  bool retVal;
-
-  retVal = getRawAccelData(&rawAccelData);
-
-  if (!retVal)
-    return false;
-
-  retVal = convAccelData(userData, &rawAccelData);
-
-  if (!retVal)
-    return false;
-
-  return true;
-}
-
-//////////////////////////////////////////////////////////////////////////////////
-// convAccelData()
-//
-// Converts raw acceleromter data with the current accelerometer's range settings.
-//
-// Parameter:
-// *userData - a pointer to the user's data struct that will hold acceleromter data.
-// *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
-//
-bool QwDevKX134::convAccelData(outputData *userAccel, rawOutputData *rawAccelData)
-{
-  if (_range < 0) // If the G-range is unknown, read it
-  {
-    uint8_t regVal;
-    int retVal;
-
-    retVal = readRegisterRegion(SFE_KX13X_CNTL1, &regVal, 1);
-
-    if (retVal != 0)
-      return false;
-
-    sfe_kx13x_cntl1_bitfield_t cntl1;
-    cntl1.all = regVal;
-
-    _range = cntl1.bits.gsel; // Record the range
-  }
-
-  switch (_range)
-  {
-  case SFE_KX134_RANGE8G:
-    userAccel->xData = (float)rawAccelData->xData * convRange8G;
-    userAccel->yData = (float)rawAccelData->yData * convRange8G;
-    userAccel->zData = (float)rawAccelData->zData * convRange8G;
-    break;
-  case SFE_KX134_RANGE16G:
-    userAccel->xData = (float)rawAccelData->xData * convRange16G;
-    userAccel->yData = (float)rawAccelData->yData * convRange16G;
-    userAccel->zData = (float)rawAccelData->zData * convRange16G;
-    break;
-  case SFE_KX134_RANGE32G:
+  case SFE_QMA6100P_RANGE32G:
     userAccel->xData = (float)rawAccelData->xData * convRange32G;
     userAccel->yData = (float)rawAccelData->yData * convRange32G;
     userAccel->zData = (float)rawAccelData->zData * convRange32G;
     break;
-  case SFE_KX134_RANGE64G:
+  case SFE_QMA6100P_RANGE64G:
     userAccel->xData = (float)rawAccelData->xData * convRange64G;
     userAccel->yData = (float)rawAccelData->yData * convRange64G;
     userAccel->zData = (float)rawAccelData->zData * convRange64G;
