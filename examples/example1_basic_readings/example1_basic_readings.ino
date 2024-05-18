@@ -1,6 +1,6 @@
 /*example1-BasicReadings*/
 #include <Wire.h>
-#include <C:\Users\trist\OneDrive\Documents\Git_Repos\Avionics-23-24\Firmware\QMA6100P_Arduino_Library\src\QMA6100P.h> // Click here to get the library: http://librarymanager/All# QMA6100P
+#include <QMA6100P.h> // Click here to get the library: http://librarymanager/All# QMA6100P
 
 QMA6100P qmaAccel;
 
