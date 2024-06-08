@@ -127,23 +127,17 @@ bool QwDevQMA6100P::enableAccel(bool enable)
 {
 
   uint8_t tempVal;
-  int retVal;
 
-  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
-
-  if (retVal != 0)
+  if(readRegisterRegion(SFE_QMA6100P_pm, &tempVal, 1) != 0)
     return false;
 
-  sfe_qma6100p_cntl1_bitfield_t cntl1;
-  cntl1.all = tempVal;
-  cntl1.bits.pc1 = enable; // This is a long winded but definitive way of setting/clearing the operating mode bit
-  _range = cntl1.bits.gsel; // Update the G-range
-  tempVal = cntl1.all;
+  sfe_qma6100p_pm_bitfield_t pm;
+  pm.all = tempVal;
+  pm.bits.mode_bit = enable; // sets QMA6100P to active mode
+  tempVal = pm.all;
 
-  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
-
-  if (retVal != 0)
-    return false;
+  if(writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal) != 0)
+    return false
 
   return true;
 }
