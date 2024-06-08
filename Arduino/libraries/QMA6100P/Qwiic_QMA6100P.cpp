@@ -128,7 +128,7 @@ bool QwDevQMA6100P::enableAccel(bool enable)
 
   uint8_t tempVal;
 
-  if(readRegisterRegion(SFE_QMA6100P_pm, &tempVal, 1) != 0)
+  if(readRegisterRegion(SFE_QMA6100P_PM, &tempVal, 1) != 0)
     return false;
 
   sfe_qma6100p_pm_bitfield_t pm;
@@ -136,8 +136,8 @@ bool QwDevQMA6100P::enableAccel(bool enable)
   pm.bits.mode_bit = enable; // sets QMA6100P to active mode
   tempVal = pm.all;
 
-  if(writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal) != 0)
-    return false
+  if(writeRegisterByte(SFE_QMA6100P_PM, tempVal) != 0)
+    return false;
 
   return true;
 }
