@@ -3,7 +3,7 @@
 uint8_t QwDevQMA6100P::getUniqueID()
 {
   uint8_t tempVal;
-  int retVal = readRegisterRegion(SFE_QMA6100P_WHO_AM_I, &tempVal, 1);
+  int retVal = readRegisterRegion(SFE_QMA6100P_CHIP_ID, &tempVal, 1);
 
   if (retVal != 0)
     return 0;
@@ -1639,7 +1639,7 @@ bool QwDevQMA6100P::init(void)
   if (!_sfeBus->ping(_i2cAddress))
     return false;
 
-  if (getUniqueID() != QMA6100P_WHO_AM_I)
+  if (getUniqueID() != QMA6100P_CHIP_ID)
     return false;
 
   return true;
