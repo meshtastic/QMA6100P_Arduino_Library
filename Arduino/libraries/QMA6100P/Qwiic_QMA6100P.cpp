@@ -214,30 +214,36 @@ bool QwDevQMA6100P::setRange(uint8_t range)
 //////////////////////////////////////////////////
 // enableDataEngine()
 //
-// Enables the data ready bit.
+// Enables the data ready bit. and maps it to INT1
 //
 // Parameter:
 // enable - enable/disables the data ready bit.
 //
 bool QwDevQMA6100P::enableDataEngine(bool enable)
 {
-  int retVal;
   uint8_t tempVal;
 
-  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
-
-  if (retVal != 0)
+  if(readRegisterRegion(SFE_QMA6100P_INT_MAP1, &tempVal, 1) != 0)
     return false;
 
-  sfe_qma6100p_cntl1_bitfield_t cntl1;
-  cntl1.all = tempVal;
-  cntl1.bits.drdye =  enable; // This is a long winded but definitive way of setting/clearing the data ready engine bit
-  _range = cntl1.bits.gsel; // Update the G-range
-  tempVal = cntl1.all;
+  sfe_qma6100p_int_map1_bitfield_t int_map1;
+  int_map1.all = tempVal;
+  int_map1.bits.int1_data = enable; // data ready interrupt to INT1
+  tempVal = int_map1.all;
 
-  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
+  if(writeRegisterByte(SFE_QMA6100P_INT_MAP1, tempVal) != 0)
+    return false;
 
-  if (retVal != 0)
+  // enable data ready interrupt
+  if(readRegisterRegion(SFE_QMA6100P_INT_EN1, &tempVal, 1) != 0)
+    return false;
+
+  sfe_qma6100p_int_en1_bitfield_t int_en1;
+  int_en1.all = tempVal;
+  int_en1.bits.int_data_en = enable; // set data ready interrupt
+  tempVal = int_en1.all;
+
+  if(writeRegisterByte(SFE_QMA6100P_INT_EN1, tempVal) != 0)
     return false;
 
   return true;
