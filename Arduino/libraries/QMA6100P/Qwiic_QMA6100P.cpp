@@ -217,21 +217,21 @@ bool QwDevQMA6100P::setRange(uint8_t range)
   uint8_t tempVal;
   int retVal;
 
-  if (range > SFE_QMA6100P_RANGE16G) // Same as SFE_QMA6100P_RANGE64G
+  if (range > SFE_QMA6100P_RANGE32G)
     return false;
 
   // Read - Modify - Write
-  retVal = readRegisterRegion(SFE_QMA6100P_CNTL1, &tempVal, 1);
+  retVal = readRegisterRegion(SFE_QMA6100P_FSR, &tempVal, 1);
 
   if (retVal != 0)
     return false;
 
-  sfe_qma6100p_cntl1_bitfield_t cntl1;
-  cntl1.all = tempVal;
-  cntl1.bits.gsel =  range; // This is a long winded but definitive way of setting the range (g select)
-  tempVal = cntl1.all;
+  sfe_qma6100p_fsr_bitfield_t fsr;
+  fsr.all = tempVal;
+  fsr.bits.range =  range; // This is a long winded but definitive way of setting the range (g select)
+  tempVal = fsr.all;
 
-  retVal = writeRegisterByte(SFE_QMA6100P_CNTL1, tempVal);
+  retVal = writeRegisterByte(SFE_QMA6100P_FSR, tempVal);
 
   if (retVal != 0)
     return false;
