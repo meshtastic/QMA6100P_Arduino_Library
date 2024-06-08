@@ -18,10 +18,11 @@
 #define QMA6100P_CHIP_ID 0x90
 
 // CNTL1 GSEL<1:0>
-#define SFE_QMA6100P_RANGE8G 0x01
-#define SFE_QMA6100P_RANGE16G 0x01
-#define SFE_QMA6100P_RANGE32G 0x02
-#define SFE_QMA6100P_RANGE64G 0x03
+#define SFE_QMA6100P_RANGE2G 0b0001
+#define SFE_QMA6100P_RANGE4G 0b0010
+#define SFE_QMA6100P_RANGE8G 0b0100
+#define SFE_QMA6100P_RANGE16G 0b1000
+#define SFE_QMA6100P_RANGE32G 0b1111
 
 #define TOTAL_ACCEL_DATA_8BIT 3
 #define TOTAL_ACCEL_DATA_16BIT 6
@@ -132,11 +133,12 @@ public:
 
   rawOutputData rawAccelData;
 
-  // QMA6100P conversion values	- all 16 bit resolution
-  const double convRange8G = .000244;
-  const double convRange16G = .000488;
-  const double convRange32G = .000977;
-  const double convRange64G = .001953;
+  // QMA6100P conversion values
+  const double convRange2G = .000244;
+  const double convRange4G = .000488;
+  const double convRange8G = .000977;
+  const double convRange16G = .001950;
+  const double convRange32G = .003910;
 
 protected:
   sfe_QMA6100P::QwIDeviceBus *_sfeBus;
