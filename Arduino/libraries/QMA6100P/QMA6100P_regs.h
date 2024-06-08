@@ -92,13 +92,6 @@ typedef struct
   uint8_t dc_str : 8; // Default 0b01010101 : 0x55
 } sfe_qma6100p_cotr_t;
 
-#define SFE_QMA6100P_WHO_AM_I 0x13
-// Identifies the accelerometer being used: 0x3D - QMA6100P and 0x46 - KX135
-typedef struct
-{
-  uint8_t wai : 8;
-} sfe_qma6100p_wai_t;
-
 #define SFE_KXI3X_TSCP 0x14
 // Current Tilt Position Register reports current position data
 typedef struct
