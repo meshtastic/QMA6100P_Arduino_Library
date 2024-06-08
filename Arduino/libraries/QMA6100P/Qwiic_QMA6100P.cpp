@@ -85,60 +85,30 @@ bool QwDevQMA6100P::initialize(uint8_t settings)
 //////////////////////////////////////////////////
 // softwareReset()
 //
-// Resets the accelerometer
+// writing 0xB6 to 0x36, soft reset all of the registers. 
+// After soft-reset, user should write 0x00 back
 //
-// Kionix Technical Reference Manual says:
-// "To change the value of the SRST bit, the PC1 bit in CNTL1 register must first be set to 0."
-//
-// Kionix TN027 "Power On Procedure" says to:
-//   Write 0x00 to register 0x7F
-//   Write 0x00 to CNTL2
-//   Write 0x80 (SRST) to CNTL2
-//
-// Kionix Technical Reference Manual says:
-// "For I2C Communication: Setting SRST = 1 will NOT result in an ACK, since the part immediately
-//  enters the RAM reboot routine. NACK may be used to confirm this command."
-// However, we've not seen the NACK when writing the SRST bit. That write always seems to be ACK'd as normal.
-// But, the _next_ I2C transaction _does_ get NACK'd...
-// The solution seems to be to keep trying to read CNTL2 and wait for the SRST bit to be cleared.
 
 bool QwDevQMA6100P::softwareReset()
 {
-  enableAccel(false); // Clear the PC1 bit in CNTL1
-
-  int retVal;
-
-  retVal = writeRegisterByte(0x7F, 0);
-
-  if (retVal != 0)
+  if(writeRegisterByte(SFE_QMA6100P_SR, 0xb6) != 0)
     return false;
 
-  retVal = writeRegisterByte(SFE_QMA6100P_CNTL2, 0);
+  sfe_qma6100p_sr_bitfeild_t sr;
 
-  if (retVal != 0)
-    return false;
+  for(int i = 0; i < 10; i ++){
+    if(readRegisterRegion(SFE_QMA6100P_SR, &sr.all, 1) != 0)
+      return false;
 
-  sfe_qma6100p_cntl2_bitfield_t cntl2;
-  cntl2.all = 0;
-  cntl2.bits.srst = 1; // This is a long winded, but definitive way of setting the software reset bit
-
-  writeRegisterByte(SFE_QMA6100P_CNTL2, cntl2.all); // Do the reset
-
-  uint8_t loopCount = 0;
-  while (loopCount < 10) // Reset takes about 2ms. Timeout after 10ms
-  {
-    retVal = readRegisterRegion(SFE_QMA6100P_CNTL2, &cntl2.all, 1); // Try to read CNTL2 (the first read gets NACK'd)
-
-    if ((retVal == 0) && (cntl2.bits.srst == 0)) // Check if the software reset bit has been cleared
-      loopCount = 10; // Exit the loop if it has
-    else
-    {
-      loopCount++; // Increment the count and repeat
-      delay(1); // Delay for 1ms: important for SPI
-    }
+    if(sr.all == 0xb6)
+      break;
+    delay(1);
   }
 
-  return ((retVal == 0) && (cntl2.bits.srst == 0));
+  if(writeRegisterByte(SFE_QMA6100P_SR, 0x00) != 0)
+    return false;
+
+  return true;
 }
 
 //////////////////////////////////////////////////
