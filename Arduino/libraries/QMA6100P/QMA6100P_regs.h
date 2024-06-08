@@ -5,84 +5,69 @@
 // This file holds the bit fields for the QMA6100P registers.
 
 #define SFE_QMA6100P_CHIP_ID 0x00 //      Retuns "KION" in ASCII
-                              //
+// This register is used to identify the device
 typedef struct
 {
-  uint8_t man_id : 8;
+  uint8_t chip_id : 8;
 } sfe_qma6100p_chip_id_t;
 
-
-#define SFE_QMA6100P_XADP_L 0x02
+#define SFE_QMA6100P_dx_L 0x01
+/*
+DX: 14bits acceleration data of x-channel. This data is in two’s complement.
+NEWDATA_X: 1, acceleration data of x-channel has been updated since last reading
+           0, acceleration data of x-channel has not been updated since last reading
+           */
 typedef struct
 {
-  uint8_t xadp_l : 8;
-} sfe_qma6100p_xadp_l_t;
+  uint8_t newdata_x : 1;
+  uint8_t blank : 1;
+  uint8_t dx_l : 6;
+} sfe_qma6100p_dx_l_t;
 
-#define SFE_QMA6100P_XADP_H 0x03
+#define SFE_QMA6100P_dx_H 0x02
 typedef struct
 {
-  uint8_t xadp_h : 8;
-} sfe_qma6100p_xadp_h_t;
+  uint8_t dx_h : 8;
+} sfe_qma6100p_dx_h_t;
 
-#define SFE_QMA6100P_YADP_L 0x04
+#define SFE_QMA6100P_DY_L 0x03
+/*
+DY: 14bits acceleration data of y-channel. This data is in two’s complement.
+NEWDATA_Y: 1, acceleration data of y-channel has been updated since last reading
+           0, acceleration data of y-channel has not been updated since last reading
+           */
 typedef struct
 {
-  uint8_t yadp_l : 8;
-} sfe_qma6100p_yadp_l_t;
+  uint8_t newdata_y : 1;
+  uint8_t blank : 1;
+  uint8_t dy_l : 6;
+} sfe_qma6100p_dy_l_t;
 
-#define SFE_QMA6100P_YADP_H 0x05
+#define SFE_QMA6100P_DY_H 0x04
 typedef struct
 {
-  uint8_t yadp_h : 8;
-} sfe_qma6100p_yadp_h_t;
+  uint8_t dy_h : 8;
+} sfe_qma6100p_dy_h_t;
 
-#define SFE_QMA6100P_ZADP_L 0x06
+#define SFE_QMA6100P_DZ_L 0x05
+/*
+DZ: 14bits acceleration data of z-channel. This data is in two’s complement.
+NEWDATA_z: 1, acceleration data of z-channel has been updated since last reading
+           0, acceleration data of z-channel has not been updated since last reading
+           */
 typedef struct
 {
-  uint8_t zadp_l : 8;
-} sfe_qma6100p_zadp_l_t;
+  uint8_t newdata_z : 1;
+  uint8_t blank : 1;
+  uint8_t dz_l : 8;
+} sfe_qma6100p_dz_l_t;
 
-#define SFE_QMA6100P_ZADP_H 0x07
+#define SFE_QMA6100P_DZ_H 0x06
+ 
 typedef struct
 {
-  uint8_t zadp_h : 8;
-} sfe_qma6100p_zadp_h_t;
-
-#define SFE_QMA6100P_XOUT_L 0x08
-typedef struct
-{
-  uint8_t xout_l : 8;
-} sfe_qma6100p_xout_l_t;
-
-#define SFE_QMA6100P_XOUT_H 0x09
-typedef struct
-{
-  uint8_t xout_h : 8;
-} sfe_qma6100p_xout_h_t;
-
-#define SFE_QMA6100P_YOUT_L 0x0A
-typedef struct
-{
-  uint8_t yout_l : 8;
-} sfe_qma6100p_yout_l_t;
-
-#define SFE_QMA6100P_YOUT_H 0x0B
-typedef struct
-{
-  uint8_t yout_h : 8;
-} sfe_qma6100p_yout_h_t;
-
-#define SFE_QMA6100P_ZOUT_L 0x0C
-typedef struct
-{
-  uint8_t zout_l : 8;
-} sfe_qma6100p_zout_l_t;
-
-#define SFE_QMA6100P_ZOUT_H 0x0D
-typedef struct
-{
-  uint8_t zout_h : 8;
-} sfe_qma6100p_zout_h_t;
+  uint8_t dz_h : 8;
+} sfe_qma6100p_dz_h_t;
 
 #define SFE_QMA6100P_COTR 0x12
 // Command Test Response
@@ -195,10 +180,10 @@ MCLK_SEL<3:0>: set the master clock to digital
 */
 typedef struct
 {
-  uint8_t MCLK_SEL : 4;
-  uint8_t T_RSTB_SINC_SEL : 2;
-  uint8_t BLANK : 1;
-  uint8_t MODE_BIT : 1;
+  uint8_t mclk_sel : 4;
+  uint8_t t_rstb_sinc_sel : 2;
+  uint8_t blank : 1;
+  uint8_t mode_bit : 1;
 } sfe_qma6100p_pm_t;
 
 typedef union
