@@ -12,8 +12,8 @@
 #include "QMA6100P_regs.h"
 #include "sfe_bus.h"
 
-#define QMA6100P_ADDRESS_HIGH 0x1F
-#define QMA6100P_ADDRESS_LOW 0x1E
+#define QMA6100P_ADDRESS_HIGH 0x13
+#define QMA6100P_ADDRESS_LOW 0x12
 
 #define QMA6100P_WHO_AM_I 0x46
 
