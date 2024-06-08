@@ -4,18 +4,13 @@
 
 // This file holds the bit fields for the QMA6100P registers.
 
-#define SFE_QMA6100P_MAN_ID 0x00 //      Retuns "KION" in ASCII
+#define SFE_QMA6100P_CHIP_ID 0x00 //      Retuns "KION" in ASCII
                               //
 typedef struct
 {
   uint8_t man_id : 8;
-} sfe_qma6100p_man_id_t;
+} sfe_qma6100p_chip_id_t;
 
-#define SFE_QMA6100P_PART_ID 0x01 //      Retuns "KION" in ASCII
-typedef struct
-{
-  uint8_t part_id : 8;
-} sfe_qma6100p_part_id_t;
 
 #define SFE_QMA6100P_XADP_L 0x02
 typedef struct
@@ -198,26 +193,26 @@ typedef struct
   uint8_t latch_release : 8;
 } sfe_qma6100p_int_rel_t;
 
-#define SFE_QMA6100P_CNTL1 0x1B
-// Read/write control register that controls the "main feature" set.
-// To change these values PC1 (bit 8) must be set to zero (stand-by mode).
-// Default value: 0b00000000
+#define SFE_QMA6100P_PM 0x11
+/* Read/write control register that controls the "MODE"
+MODE_BIT : 1, set device into active mode
+           0, set device into standby mode
+T_RSTB_SINC_SEL<1:0>: Reset clock setting. The preset time is reserved for CIC filter in digital
+MCLK_SEL<3:0>: set the master clock to digital
+*/
 typedef struct
 {
-  uint8_t tpe : 1;
-  uint8_t reserved_one : 1;
-  uint8_t tdte : 1;
-  uint8_t gsel : 2;
-  uint8_t drdye : 1;
-  uint8_t res : 1;
-  uint8_t pc1 : 1;
-} sfe_qma6100p_cntl1_t;
+  uint8_t MCLK_SEL : 4;
+  uint8_t T_RSTB_SINC_SEL : 2;
+  uint8_t BLANK : 1;
+  uint8_t MODE_BIT : 1;
+} sfe_qma6100p_pm_t;
 
 typedef union
 {
   uint8_t all;
-  sfe_qma6100p_cntl1_t bits;
-} sfe_qma6100p_cntl1_bitfield_t;
+  sfe_qma6100p_pm_t bits;
+} sfe_qma6100p_pm_bitfield_t;
 
 #define SFE_QMA6100P_CNTL2 0x1C
 // Read/Write control register that controls tilt position state enabling
