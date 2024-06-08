@@ -41,7 +41,7 @@ void setup()
   // "...regs.h" file which specify which can be changed when.
   qmaAccel.enableAccel(false);
 
-  qmaAccel.setRange(SFE_QMA6100P_RANGE16G);         // 16g for the QMA6100P
+  qmaAccel.setRange(SFE_QMA6100P_RANGE32G);         // 32g for the QMA6100P
 
   qmaAccel.enableDataEngine(); // Enables the bit that indicates data is ready.
   // qmaAccel.setOutputDataRate(); // Default is 50Hz
