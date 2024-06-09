@@ -41,20 +41,17 @@ void setup()
 
   softSerial.println("Ready.");
 
-  if (!qmaAccel.softwareReset())
-    softSerial.println("ERROR: Failed to reset");
-
-  // Give some time for the accelerometer to reset.
-  // It needs two, but give it five for good measure.
-  delay(5);
+  // if (!qmaAccel.softwareReset())
+  //   softSerial.println("ERROR: Failed to reset");
+  // delay(5);
 
   if(!qmaAccel.setRange(SFE_QMA6100P_RANGE32G))        // 32g for the QMA6100P
     softSerial.println("ERROR: failed to set range");
 
-  if(!qmaAccel.enableDataEngine(false)) // Enables the bit that indicates data is ready.
+  if(!qmaAccel.enableDataEngine(false)) // Enables the Interrupt bit that indicates data is ready.
     softSerial.println("ERROR: failed to map and set data ready interrupt");
 
-  if(!qmaAccel.enableAccel())
+  if(!qmaAccel.enableAccel(true))
     softSerial.println("ERROR: failed to set active mode");
 }
 
@@ -63,7 +60,7 @@ void loop()
   // Check if data is ready.
   if (qmaAccel.dataReady())
   {
-    qmaAccel.getAccelData(&myData, buffer_enable);
+    qmaAccel.getAccelData(&myData);
     softSerial.print("X: ");
     softSerial.print(myData.xData, 4);
     softSerial.print(" Y: ");
