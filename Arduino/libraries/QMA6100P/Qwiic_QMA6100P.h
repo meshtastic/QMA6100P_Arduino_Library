@@ -56,6 +56,9 @@ public:
   bool enableDataEngine(bool enable = true);
   bool dataReady();
   bool getRawAccelRegisterData(rawOutputData *);
+  void offsetValues(float &x, float &y, float &z);
+
+  int getRange();
 
   rawOutputData rawAccelData;
 
