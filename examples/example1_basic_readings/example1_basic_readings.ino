@@ -46,7 +46,7 @@ void setup()
     
     delay(5);
 
-  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE32G)){      // 32g for the QMA6100P
+  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE2G)){      // 32g for the QMA6100P
     softSerial.println("ERROR: failed to set range");
   }
 
@@ -66,13 +66,13 @@ void loop()
 
   // Check if data is ready.
   qmaAccel.getAccelData(&myData);
-  qmaAccel.offsetValues(myData.xData, myData.yData, myData.zData);
+  // qmaAccel.offsetValues(myData.xData, myData.yData, myData.zData);
   softSerial.print("X: ");
-  softSerial.print(myData.xData, 4);
+  softSerial.print(myData.xData, 2);
   softSerial.print(" Y: ");
-  softSerial.print(myData.yData, 4);
+  softSerial.print(myData.yData, 2);
   softSerial.print(" Z: ");
-  softSerial.print(myData.zData, 4);
+  softSerial.print(myData.zData, 2);
   softSerial.println();
 
   delay(20); // Delay should be 1/ODR (Output Data Rate), default is 1/50ODR
