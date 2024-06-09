@@ -1,6 +1,6 @@
 /*example1-BasicReadings*/
 #include <Wire.h>
-#include <Qwiic_QMA6100P.h> // Click here to get the library: http://librarymanager/All# QMA6100P
+#include <Qwiic_QMA6100P.h>
 
 #define USB_TX_PIN PA12 // D- pin
 #define USB_RX_PIN PA11 // D+ pin
@@ -23,6 +23,8 @@ SoftwareSerial softSerial(USB_RX_PIN, USB_TX_PIN);
 void setup()
 {
   softSerial.begin(38400);
+  delay(2000);
+  softSerial.println("serial start");
 
   // put your setup code here, to run once:
   pinMode(DB_LED_PIN, OUTPUT);
@@ -39,35 +41,39 @@ void setup()
       ;
   }
 
+  if (!qmaAccel.softwareReset())
+    softSerial.println("ERROR: Failed to reset");
+    
+    delay(5);
+
+  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE32G)){      // 32g for the QMA6100P
+    softSerial.println("ERROR: failed to set range");
+  }
+
+  if(!qmaAccel.enableAccel()){
+    softSerial.println("ERROR: failed to set active mode");
+  }   
+
+  myData.xData = 0;
+  myData.yData = 0;
+  myData.zData = 0;
   softSerial.println("Ready.");
 
-  // if (!qmaAccel.softwareReset())
-  //   softSerial.println("ERROR: Failed to reset");
-  // delay(5);
-
-  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE32G))        // 32g for the QMA6100P
-    softSerial.println("ERROR: failed to set range");
-
-  if(!qmaAccel.enableDataEngine(false)) // Enables the Interrupt bit that indicates data is ready.
-    softSerial.println("ERROR: failed to map and set data ready interrupt");
-
-  if(!qmaAccel.enableAccel(true))
-    softSerial.println("ERROR: failed to set active mode");
 }
 
 void loop()
 {
+
   // Check if data is ready.
-  if (qmaAccel.dataReady())
-  {
-    qmaAccel.getAccelData(&myData);
-    softSerial.print("X: ");
-    softSerial.print(myData.xData, 4);
-    softSerial.print(" Y: ");
-    softSerial.print(myData.yData, 4);
-    softSerial.print(" Z: ");
-    softSerial.print(myData.zData, 4);
-    softSerial.println();
-  }
+  qmaAccel.getAccelData(&myData);
+  qmaAccel.offsetValues(myData.xData, myData.yData, myData.zData);
+  softSerial.print("X: ");
+  softSerial.print(myData.xData, 4);
+  softSerial.print(" Y: ");
+  softSerial.print(myData.yData, 4);
+  softSerial.print(" Z: ");
+  softSerial.print(myData.zData, 4);
+  softSerial.println();
+
   delay(20); // Delay should be 1/ODR (Output Data Rate), default is 1/50ODR
 }
