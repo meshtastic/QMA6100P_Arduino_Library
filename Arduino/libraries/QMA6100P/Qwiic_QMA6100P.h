@@ -18,8 +18,6 @@
 #define SFE_QMA6100P_RANGE16G 0b1000
 #define SFE_QMA6100P_RANGE32G 0b1111
 
-#define TOTAL_ACCEL_DATA_8BIT 3
-#define TOTAL_ACCEL_DATA_16BIT 6
 
 struct outputData
 {
@@ -54,7 +52,7 @@ public:
   int8_t getOperatingMode();
   bool setRange(uint8_t);
   bool enableDataEngine(bool enable = true);
-  bool dataReady();
+  bool dataReady(uint8_t tempRegData);
   bool getRawAccelRegisterData(rawOutputData *);
   void offsetValues(float &x, float &y, float &z);
 
