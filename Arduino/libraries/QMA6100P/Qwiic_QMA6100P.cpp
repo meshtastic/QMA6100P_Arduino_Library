@@ -122,6 +122,11 @@ bool QwDevQMA6100P::setRange(uint8_t range)
   return true;
 }
 
+//return current setting for accelleration range
+int QwDevQMA6100P::getRange(){
+  return _range;
+}
+
 //////////////////////////////////////////////////
 // enableDataEngine()
 //
@@ -129,7 +134,6 @@ bool QwDevQMA6100P::setRange(uint8_t range)
 //
 // Parameter:
 // enable - enable/disables the data ready bit.
-//
 bool QwDevQMA6100P::enableDataEngine(bool enable)
 {
   uint8_t tempVal;
@@ -159,27 +163,6 @@ bool QwDevQMA6100P::enableDataEngine(bool enable)
 
   return true;
 }
-//////////////////////////////////////////////////
-// dataReady()
-//
-// Checks the data ready bit indicating new accelerometer data
-// is ready in the X/Y/Z Out regsiters. This is cleared automatically
-// on read of LSB and MSB
-bool QwDevQMA6100P::dataReady()
-{
-
-  uint8_t tempRegData[6] = {0};
-
-  if(!readRegisterRegion(SFE_QMA6100P_DX_L, tempRegData, 6));
-    return false;
-
-  bool ready = 0;
-  ready |= tempRegData[0] & 0x01;
-  ready |= tempRegData[2] & 0x01;
-  ready |= tempRegData[4] & 0b01;
-
-  return ready;
-}
 
 //////////////////////////////////////////////////
 // getRawAccelRegisterData()
@@ -197,15 +180,30 @@ bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 {
   uint8_t tempRegData[6] = {0};
 
-  if(!readRegisterRegion(SFE_QMA6100P_DX_L, tempRegData, 6)); // Read 3 * 16-bit
+  if(!readRegisterRegion(SFE_QMA6100P_DX_L, tempRegData, 6)) // Read 3 * 16-bit
     return false;
 
-  rawAccelData->xData = (tempRegData[0] >> 1) & 0b01111111;
-  rawAccelData->xData |= (uint16_t)tempRegData[1] << 8;
-  rawAccelData->yData = (tempRegData[2] >> 1) & 0b01111111;
-  rawAccelData->yData |= (uint16_t)tempRegData[3] << 8;
-  rawAccelData->zData = (tempRegData[4] >> 1) & 0b01111111 ;
-  rawAccelData->zData |= (uint16_t)tempRegData[5] << 8;
+  // check newData_X
+  if(tempRegData[0] & 0x1){
+  rawAccelData->xData = (tempRegData[0] >> 2);
+  rawAccelData->xData |= (uint16_t)tempRegData[1] << 6;
+  rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 7;
+  rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 8;
+  } 
+  // check newData_Z
+  if(tempRegData[2] & 0x1){
+  rawAccelData->yData = (tempRegData[2] >> 2);
+  rawAccelData->yData |= (uint16_t)tempRegData[3] << 6;
+  rawAccelData->yData |= ((uint16_t)tempRegData[3] & 0b10000000) << 7;
+  rawAccelData->yData |= ((uint16_t)tempRegData[3] & 0b10000000) << 8;
+  } 
+  // check newData_Z
+  if(tempRegData[4] & 0x1){
+  rawAccelData->zData = (tempRegData[4] >> 2);
+  rawAccelData->zData |= (uint16_t)tempRegData[5] << 6;
+  rawAccelData->zData |= ((uint16_t)tempRegData[5] & 0b10000000) << 7;
+  rawAccelData->zData |= ((uint16_t)tempRegData[5] & 0b10000000) << 8;
+  }
 
   return true;
 }
@@ -227,9 +225,11 @@ bool QwDevQMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorD
 
   delay(10);
 
-  if (bytesAvailable >= 1) {
-    *sensorData = Wire.read(); // Read the byte from the sensor and store it in the variable pointed to by sensorData
-    return true; // Return 0 if the read operation was successful
+  if (bytesAvailable >= len) {
+    for (uint8_t i = 0; i < len; i++) {
+      sensorData[i] = Wire.read(); // Read the bytes from the sensor and store them in the array pointed to by sensorData
+    }
+    return true; // Return true if the read operation was successful
   } else {
     return false;
   }
@@ -299,7 +299,6 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
   if (_range < 0) // If the G-range is unknown, read it
   {
     uint8_t regVal;
-    int retVal;
 
     if(!readRegisterRegion(SFE_QMA6100P_FSR, &regVal, 1))
       return false;
@@ -342,4 +341,14 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
   }
 
   return true;
+}
+
+void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
+    const float X_average = -23.8763;
+    const float Y_average = -7.9881;
+    const float Z_average = 29.5399;
+
+    x -= X_average;
+    y -= Y_average;
+    z -= Z_average;
 }
