@@ -15,7 +15,6 @@ uint8_t QwDevQMA6100P::getUniqueID()
 // writing 0xB6 to 0x36, soft reset all of the registers. 
 // After soft-reset, user should write 0x00 back
 //
-
 bool QwDevQMA6100P::softwareReset()
 {
   if(!writeRegisterByte(SFE_QMA6100P_SR, static_cast<uint8_t>(0xb6)))
@@ -49,7 +48,6 @@ bool QwDevQMA6100P::softwareReset()
 // enable - enables or disables the accelerometer
 //
 //
-
 bool QwDevQMA6100P::enableAccel(bool enable)
 {
 
@@ -72,9 +70,8 @@ bool QwDevQMA6100P::enableAccel(bool enable)
 //////////////////////////////////////////////////
 // getOperatingMode()
 //
-// Retrieves the current operating mode - low/high power mode
+// Retrieves the current operating mode - stanby/active mode
 //
-
 int8_t QwDevQMA6100P::getOperatingMode()
 {
 
@@ -97,7 +94,7 @@ int8_t QwDevQMA6100P::getOperatingMode()
 //
 // Parameter:
 // range - sets the range of the accelerometer 2g - 32g depending
-// on the version. 8g - 64g for the QMA6100P.
+// on the version. 2g - 32g for the QMA6100P.
 //
 bool QwDevQMA6100P::setRange(uint8_t range)
 {
@@ -167,9 +164,7 @@ bool QwDevQMA6100P::enableDataEngine(bool enable)
 //
 // Checks the data ready bit indicating new accelerometer data
 // is ready in the X/Y/Z Out regsiters. This is cleared automatically
-// on read.
-//
-//
+// on read of LSB and MSB
 bool QwDevQMA6100P::dataReady()
 {
 
@@ -184,25 +179,6 @@ bool QwDevQMA6100P::dataReady()
   ready |= tempRegData[4] & 0b01;
 
   return ready;
-}
-//////////////////////////////////////////////////
-// getRawAccelData()
-//
-//
-//
-// Parameter:
-// *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
-//
-bool QwDevQMA6100P::getRawAccelData(rawOutputData *rawAccelData, bool buffer)
-{
-
-  int retVal;
-
-  if (buffer) // If Buffer is enabled, read there.
-    // return (getRawAccelBufferData(rawAccelData);
-    return 1;
-  else
-    return (getRawAccelRegisterData(rawAccelData));
 }
 
 //////////////////////////////////////////////////
@@ -247,7 +223,7 @@ bool QwDevQMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorD
     return false;
   }
 
-  uint8_t bytesAvailable = Wire.requestFrom(static_cast<int>(QMA6100P_ADDRESS_HIGH), static_cast<int>(len), static_cast<int>(true)); // Request 1 byte of data
+  uint8_t bytesAvailable = Wire.requestFrom(static_cast<int>(QMA6100P_ADDRESS_HIGH), static_cast<int>(len), static_cast<int>(true)); // Request len byte of data
 
   delay(10);
 
@@ -297,19 +273,13 @@ bool QwDevQMA6100P::begin()
 // Parameter:
 // *userData - a pointer to the user's data struct that will hold acceleromter data.
 //
-bool QwDevQMA6100P::getAccelData(outputData *userData, bool buffer_enable)
+bool QwDevQMA6100P::getAccelData(outputData *userData)
 {
 
-  bool retVal;
-
-  retVal = getRawAccelData(&rawAccelData, buffer_enable);
-
-  if (!retVal)
+  if(!getRawAccelRegisterData(&rawAccelData))
     return false;
 
-  retVal = convAccelData(userData, &rawAccelData);
-
-  if (!retVal)
+  if(!convAccelData(userData, &rawAccelData))
     return false;
 
   return true;
