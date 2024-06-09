@@ -59,7 +59,7 @@ typedef struct
 {
   uint8_t newdata_z : 1;
   uint8_t blank : 1;
-  uint8_t dz_l : 8;
+  uint8_t dz_l : 6;
 } sfe_qma6100p_dz_l_t;
 
 #define SFE_QMA6100P_DZ_H 0x06
