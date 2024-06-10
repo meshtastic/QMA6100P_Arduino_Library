@@ -1,6 +1,6 @@
 /*example1-BasicReadings*/
 #include <Wire.h>
-#include <Qwiic_QMA6100P.h>
+#include <QMA6100P.h>
 
 #define USB_TX_PIN PA12 // D- pin
 #define USB_RX_PIN PA11 // D+ pin
