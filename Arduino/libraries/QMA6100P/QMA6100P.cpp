@@ -394,7 +394,6 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
 }
 
 void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
-  float G = 9.81;
   x = x * SENSORS_GRAVITY_EARTH - xOffset;
   y = y * SENSORS_GRAVITY_EARTH - yOffset;
   z = z * SENSORS_GRAVITY_EARTH - zOffset;
