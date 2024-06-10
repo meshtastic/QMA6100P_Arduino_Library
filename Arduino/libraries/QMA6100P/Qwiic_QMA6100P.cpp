@@ -302,9 +302,9 @@ bool QwDevQMA6100P::calibrateOffsets()
         if (!getAccelData(&data))
             return false;
         
-        xSum += data.xData/G;
-        ySum += data.yData/G;
-        zSum += data.zData/G;
+        xSum += data.xData * G;
+        ySum += data.yData * G;
+        zSum += data.zData * G;
         delay(10);
     }
 
@@ -396,7 +396,7 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
 
 void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
   float G = 9.81;
-  x = x/G - xOffset;
-  y = y/G - yOffset;
-  z = z/G - zOffset;
+  x = x * G - xOffset;
+  y = y * G - yOffset;
+  z = z * G - zOffset;
 }
