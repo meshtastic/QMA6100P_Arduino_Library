@@ -1,4 +1,4 @@
-#include "Qwiic_QMA6100P.h"
+#include "QMA6100P.h"
 
 uint8_t QwDevQMA6100P::getUniqueID()
 {
