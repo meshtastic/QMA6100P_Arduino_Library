@@ -66,7 +66,7 @@ void loop()
 
   // Check if data is ready.
   qmaAccel.getAccelData(&myData);
-  // qmaAccel.offsetValues(myData.xData, myData.yData, myData.zData);
+  qmaAccel.offsetValues(myData.xData, myData.yData, myData.zData);
   softSerial.print("X: ");
   softSerial.print(myData.xData, 2);
   softSerial.print(" Y: ");

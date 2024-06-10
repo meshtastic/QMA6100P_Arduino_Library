@@ -292,7 +292,9 @@ bool QwDevQMA6100P::calibrateOffsets()
 {
     outputData data;
     int numSamples = 100;
+    float G = 9.81;
     float xSum = 0.0, ySum = 0.0, zSum = 0.0;
+
 
     // Take multiple samples to average out noise
     for (int i = 0; i < numSamples; i++)
@@ -300,16 +302,16 @@ bool QwDevQMA6100P::calibrateOffsets()
         if (!getAccelData(&data))
             return false;
         
-        xSum += data.xData;
-        ySum += data.yData;
-        zSum += data.zData;
+        xSum += data.xData/G;
+        ySum += data.yData/G;
+        zSum += data.zData/G;
         delay(10);
     }
 
     // Calculate average
     xOffset = xSum / numSamples;
     yOffset = ySum / numSamples;
-    zOffset = zSum / numSamples + 9.8;  // Assuming z-axis aligned with gravity
+    zOffset = zSum / numSamples + G;  // Assuming z-axis aligned with gravity
 
     return true;
 }
@@ -330,8 +332,6 @@ bool QwDevQMA6100P::getAccelData(outputData *userData)
 
   if(!convAccelData(userData, &rawAccelData))
     return false;
-
-  offsetValues(userData->xData, userData->yData, userData->zData);
 
   return true;
 }
@@ -395,7 +395,8 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
 }
 
 void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
-    x -= xOffset;
-    y -= yOffset;
-    z -= zOffset;
+  float G = 9.81;
+  x = x/G - xOffset;
+  y = y/G - yOffset;
+  z = z/G - zOffset;
 }
