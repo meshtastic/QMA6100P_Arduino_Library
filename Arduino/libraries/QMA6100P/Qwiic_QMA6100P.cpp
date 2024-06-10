@@ -164,6 +164,26 @@ bool QwDevQMA6100P::enableDataEngine(bool enable)
   return true;
 }
 
+bool QwDevQMA6100P::setFifoMode(uint8_t fifo_mode){
+
+  uint8_t tempVal;
+
+  if(!readRegisterRegion(SFE_QMA6100P_FIFO_CFG0, &tempVal, 1))
+    return false;
+
+  sfe_qma6100p_fifo_cfg0_bitfield_t fifo_cfg0;
+  fifo_cfg0.all = tempVal;
+  fifo_cfg0.bits.fifo_mode = fifo_mode; // data ready interrupt to INT1
+  fifo_cfg0.bits.fifo_mode = 0b111;
+  tempVal = fifo_cfg0.all;
+
+  if(!writeRegisterByte(SFE_QMA6100P_FIFO_CFG0, tempVal))
+    return false;
+
+  return true;
+
+}
+
 //////////////////////////////////////////////////
 // getRawAccelRegisterData()
 //
@@ -189,7 +209,7 @@ bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
   rawAccelData->xData |= (uint16_t)tempRegData[1] << 6;
   rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 7;
   rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 8;
-  } 
+  }
   // check newData_Z
   if(tempRegData[2] & 0x1){
   rawAccelData->yData = (tempRegData[2] >> 2);
@@ -262,7 +282,36 @@ bool QwDevQMA6100P::begin()
   if (getUniqueID() != QMA6100P_CHIP_ID)
     return false;
 
+  if(!calibrateOffsets())
+    return false;
+
   return true;
+}
+
+bool QwDevQMA6100P::calibrateOffsets()
+{
+    outputData data;
+    int numSamples = 100;
+    float xSum = 0.0, ySum = 0.0, zSum = 0.0;
+
+    // Take multiple samples to average out noise
+    for (int i = 0; i < numSamples; i++)
+    {
+        if (!getAccelData(&data))
+            return false;
+        
+        xSum += data.xData;
+        ySum += data.yData;
+        zSum += data.zData;
+        delay(10);
+    }
+
+    // Calculate average
+    xOffset = xSum / numSamples;
+    yOffset = ySum / numSamples;
+    zOffset = zSum / numSamples + 9.8;  // Assuming z-axis aligned with gravity
+
+    return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -281,6 +330,8 @@ bool QwDevQMA6100P::getAccelData(outputData *userData)
 
   if(!convAccelData(userData, &rawAccelData))
     return false;
+
+  offsetValues(userData->xData, userData->yData, userData->zData);
 
   return true;
 }
@@ -344,11 +395,7 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
 }
 
 void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
-    const float X_average = -23.8763;
-    const float Y_average = -7.9881;
-    const float Z_average = 29.5399;
-
-    x -= X_average;
-    y -= Y_average;
-    z -= Z_average;
+    x -= xOffset;
+    y -= yOffset;
+    z -= zOffset;
 }

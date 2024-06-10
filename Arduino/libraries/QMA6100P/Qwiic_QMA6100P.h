@@ -18,6 +18,10 @@
 #define SFE_QMA6100P_RANGE16G 0b1000
 #define SFE_QMA6100P_RANGE32G 0b1111
 
+#define SFE_QMA6100P_FIFO_MODE_BYPASS 0b00
+#define SFE_QMA6100P_FIFO_MODE_FIFO   0b01
+#define SFE_QMA6100P_FIFO_MODE_STREAM 0b10
+#define SFE_QMA6100P_FIFO_MODE_FIFO   0b11
 
 struct outputData
 {
@@ -38,6 +42,7 @@ class QwDevQMA6100P
 public:
 
   bool begin();
+  bool calibrateOffsets();
   uint8_t getUniqueID();
   bool writeRegisterByte(uint8_t registerAddress, uint8_t data);
   bool readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, int len);
@@ -52,9 +57,9 @@ public:
   int8_t getOperatingMode();
   bool setRange(uint8_t);
   bool enableDataEngine(bool enable = true);
-  bool dataReady(uint8_t tempRegData);
   bool getRawAccelRegisterData(rawOutputData *);
   void offsetValues(float &x, float &y, float &z);
+  bool setFifoMode(uint8_t fifo_mode);
 
   int getRange();
 
@@ -66,6 +71,10 @@ public:
   const double convRange8G = .000977;
   const double convRange16G = .001950;
   const double convRange32G = .003910;
+
+  float xOffset = 0.0;
+  float yOffset = 0.0;
+  float zOffset = 0.0;
 
 protected:
   int _range = -1; // Keep a local copy of the range. Default to "unknown" (-1).
