@@ -383,7 +383,7 @@ typedef union
   sfe_qma6100p_fifo_cfg0_t bits;
 } sfe_qma6100p_fifo_cfg0_bitfield_t;
 
-#define SFE_QMA6100P_FIFO_data 0x3f
+#define SFE_QMA6100P_FIFO_DATA 0x3f
 /*
 FIFO_DATA<7:0>: FIFO read out data. User can read out FIFO data through this register. Data format depends on the setting of FIFO_CH (0x3e<2:0>).
 When the FIFO data is the LSB part of acceleration data, and if FIFO is empty, then FIFO_DATA<0> is 0. Otherwise if FIFO is not empty and the data is effective, 
