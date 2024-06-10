@@ -292,7 +292,6 @@ bool QwDevQMA6100P::calibrateOffsets()
 {
     outputData data;
     int numSamples = 100;
-    float G = 9.81;
     float xSum = 0.0, ySum = 0.0, zSum = 0.0;
 
 
