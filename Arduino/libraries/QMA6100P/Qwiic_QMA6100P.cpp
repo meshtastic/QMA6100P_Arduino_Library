@@ -302,16 +302,16 @@ bool QwDevQMA6100P::calibrateOffsets()
         if (!getAccelData(&data))
             return false;
         
-        xSum += data.xData * G;
-        ySum += data.yData * G;
-        zSum += data.zData * G;
+        xSum += data.xData * SENSORS_GRAVITY_EARTH;
+        ySum += data.yData * SENSORS_GRAVITY_EARTH;
+        zSum += data.zData * SENSORS_GRAVITY_EARTH;
         delay(10);
     }
 
     // Calculate average
     xOffset = xSum / numSamples;
     yOffset = ySum / numSamples;
-    zOffset = zSum / numSamples + G;  // Assuming z-axis aligned with gravity
+    zOffset = zSum / numSamples + SENSORS_GRAVITY_EARTH;  // Assuming z-axis aligned with gravity
 
     return true;
 }
@@ -396,7 +396,7 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
 
 void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
   float G = 9.81;
-  x = x * G - xOffset;
-  y = y * G - yOffset;
-  z = z * G - zOffset;
+  x = x * SENSORS_GRAVITY_EARTH - xOffset;
+  y = y * SENSORS_GRAVITY_EARTH - yOffset;
+  z = z * SENSORS_GRAVITY_EARTH - zOffset;
 }

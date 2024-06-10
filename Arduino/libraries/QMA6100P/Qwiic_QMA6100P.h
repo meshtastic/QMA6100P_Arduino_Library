@@ -23,6 +23,8 @@
 #define SFE_QMA6100P_FIFO_MODE_STREAM 0b10
 #define SFE_QMA6100P_FIFO_MODE_FIFO   0b11
 
+#define SENSORS_GRAVITY_EARTH (9.80665F)
+
 struct outputData
 {
   float xData;
