@@ -72,7 +72,7 @@ bool QwDevQMA6100P::enableAccel(bool enable)
 //
 // Retrieves the current operating mode - stanby/active mode
 //
-int8_t QwDevQMA6100P::getOperatingMode()
+uint8_t QwDevQMA6100P::getOperatingMode()
 {
 
   uint8_t tempVal;
@@ -174,7 +174,7 @@ bool QwDevQMA6100P::setFifoMode(uint8_t fifo_mode){
   sfe_qma6100p_fifo_cfg0_bitfield_t fifo_cfg0;
   fifo_cfg0.all = tempVal;
   fifo_cfg0.bits.fifo_mode = fifo_mode; // data ready interrupt to INT1
-  fifo_cfg0.bits.fifo_mode = 0b111;
+  fifo_cfg0.bits.fifo_en_xyz = 0b111;
   tempVal = fifo_cfg0.all;
 
   if(!writeRegisterByte(SFE_QMA6100P_FIFO_CFG0, tempVal))
@@ -199,30 +199,25 @@ bool QwDevQMA6100P::setFifoMode(uint8_t fifo_mode){
 bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 {
   uint8_t tempRegData[6] = {0};
+  int16_t tempData = 0;
 
   if(!readRegisterRegion(SFE_QMA6100P_DX_L, tempRegData, 6)) // Read 3 * 16-bit
     return false;
 
   // check newData_X
   if(tempRegData[0] & 0x1){
-  rawAccelData->xData = (tempRegData[0] >> 2);
-  rawAccelData->xData |= (uint16_t)tempRegData[1] << 6;
-  rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 7;
-  rawAccelData->xData |= ((uint16_t)tempRegData[1] & 0b10000000) << 8;
+    tempData = (int16_t)(((uint16_t)(tempRegData[1] << 8)) | (tempRegData[0]));
+    rawAccelData->xData = tempData >> 2;
   }
   // check newData_Z
   if(tempRegData[2] & 0x1){
-  rawAccelData->yData = (tempRegData[2] >> 2);
-  rawAccelData->yData |= (uint16_t)tempRegData[3] << 6;
-  rawAccelData->yData |= ((uint16_t)tempRegData[3] & 0b10000000) << 7;
-  rawAccelData->yData |= ((uint16_t)tempRegData[3] & 0b10000000) << 8;
+    tempData = (int16_t)(((uint16_t)(tempRegData[3] << 8)) | (tempRegData[2]));
+    rawAccelData->yData = tempData >> 2;
   } 
   // check newData_Z
   if(tempRegData[4] & 0x1){
-  rawAccelData->zData = (tempRegData[4] >> 2);
-  rawAccelData->zData |= (uint16_t)tempRegData[5] << 6;
-  rawAccelData->zData |= ((uint16_t)tempRegData[5] & 0b10000000) << 7;
-  rawAccelData->zData |= ((uint16_t)tempRegData[5] & 0b10000000) << 8;
+    tempData = (int16_t)(((uint16_t)(tempRegData[5] << 8)) | (tempRegData[4]));
+    rawAccelData->zData = tempData >> 2;
   }
 
   return true;

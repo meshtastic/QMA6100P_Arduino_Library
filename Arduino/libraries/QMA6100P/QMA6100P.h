@@ -56,7 +56,7 @@ public:
   // General Settings
   bool enableAccel(bool enable = true);
   bool softwareReset();
-  int8_t getOperatingMode();
+  uint8_t getOperatingMode();
   bool setRange(uint8_t);
   bool enableDataEngine(bool enable = true);
   bool getRawAccelRegisterData(rawOutputData *);
