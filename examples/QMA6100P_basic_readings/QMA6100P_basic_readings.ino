@@ -12,9 +12,13 @@
 
 bool buffer_enable = false;
 
-QwDevQMA6100P qmaAccel;
+QMA6100P qmaAccel;
 
 outputData myData; // Struct for the accelerometer's data
+
+float largest_gX = 0;
+float largest_gY = 0;
+float largest_gZ = 0;
 
 #include <SoftwareSerial.h>
 
@@ -46,13 +50,19 @@ void setup()
     
     delay(5);
 
-  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE2G)){      // 32g for the QMA6100P
+  if(!qmaAccel.setRange(SFE_QMA6100P_RANGE32G)){      // 32g for the QMA6100P
     softSerial.println("ERROR: failed to set range");
   }
 
   if(!qmaAccel.enableAccel()){
     softSerial.println("ERROR: failed to set active mode");
   }   
+
+  if(!qmaAccel.calibrateOffsets()){
+    softSerial.println("ERROR: calibration failed");
+  }
+
+  //qmaAccel.setOffset( );
 
   myData.xData = 0;
   myData.yData = 0;
@@ -74,6 +84,7 @@ void loop()
   softSerial.print(" Z: ");
   softSerial.print(myData.zData, 2);
   softSerial.println();
+  
 
   delay(20); // Delay should be 1/ODR (Output Data Rate), default is 1/50ODR
 }

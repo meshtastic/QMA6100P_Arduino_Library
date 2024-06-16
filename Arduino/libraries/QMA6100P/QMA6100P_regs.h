@@ -177,10 +177,10 @@ typedef struct
 // set the full scale of the accelerometer.
 typedef struct
 {
-  uint8_t blank1 : 1;
+  uint8_t range : 4;
+  uint8_t blank : 3;
   uint8_t lpf_hpf : 1;
-  uint8_t blank2 : 2;
-  uint8_t range : 3;
+
 } sfe_qma6100p_fsr_t;
 
 typedef union
@@ -374,7 +374,7 @@ typedef struct
 {
   uint8_t fifo_mode : 2;
   uint8_t raise_xyz_sw  : 3;
-  uint8_t FIFO_EN_XYZ : 3;
+  uint8_t fifo_en_xyz : 3;
 } sfe_qma6100p_fifo_cfg0_t;
 
 typedef union

@@ -1,6 +1,6 @@
 #include "QMA6100P.h"
 
-uint8_t QwDevQMA6100P::getUniqueID()
+uint8_t QMA6100P::getUniqueID()
 {
   uint8_t tempVal;
   if(!readRegisterRegion(SFE_QMA6100P_CHIP_ID, &tempVal, 1))
@@ -15,7 +15,7 @@ uint8_t QwDevQMA6100P::getUniqueID()
 // writing 0xB6 to 0x36, soft reset all of the registers. 
 // After soft-reset, user should write 0x00 back
 //
-bool QwDevQMA6100P::softwareReset()
+bool QMA6100P::softwareReset()
 {
   if(!writeRegisterByte(SFE_QMA6100P_SR, static_cast<uint8_t>(0xb6)))
     return false;
@@ -48,7 +48,7 @@ bool QwDevQMA6100P::softwareReset()
 // enable - enables or disables the accelerometer
 //
 //
-bool QwDevQMA6100P::enableAccel(bool enable)
+bool QMA6100P::enableAccel(bool enable)
 {
 
   uint8_t tempVal;
@@ -72,7 +72,7 @@ bool QwDevQMA6100P::enableAccel(bool enable)
 //
 // Retrieves the current operating mode - stanby/active mode
 //
-uint8_t QwDevQMA6100P::getOperatingMode()
+uint8_t QMA6100P::getOperatingMode()
 {
 
   uint8_t tempVal;
@@ -96,22 +96,21 @@ uint8_t QwDevQMA6100P::getOperatingMode()
 // range - sets the range of the accelerometer 2g - 32g depending
 // on the version. 2g - 32g for the QMA6100P.
 //
-bool QwDevQMA6100P::setRange(uint8_t range)
+bool QMA6100P::setRange(uint8_t range)
 {
 
   uint8_t tempVal;
-  int retVal;
 
   if (range > SFE_QMA6100P_RANGE32G)
     return false;
 
-  // Read - Modify - Write
-  if(!readRegisterRegion(SFE_QMA6100P_PM, &tempVal, 1))
+  // Read - Modify - Write                                                                      
+  if(!readRegisterRegion(SFE_QMA6100P_FSR, &tempVal, 1))
     return false;
 
   sfe_qma6100p_fsr_bitfield_t fsr;
   fsr.all = tempVal;
-  fsr.bits.range =  range; // This is a long winded but definitive way of setting the range (g select)
+  fsr.bits.range = range; // This is a long winded but definitive way of setting the range (g select)
   tempVal = fsr.all;
 
   if(!writeRegisterByte(SFE_QMA6100P_FSR, tempVal))
@@ -122,9 +121,21 @@ bool QwDevQMA6100P::setRange(uint8_t range)
   return true;
 }
 
-//return current setting for accelleration range
-int QwDevQMA6100P::getRange(){
-  return _range;
+// return current setting for accelleration range
+uint8_t QMA6100P::getRange(){
+
+  uint8_t tempVal;
+  uint8_t range;
+
+  // Read - Modify - Write
+  if(!readRegisterRegion(SFE_QMA6100P_FSR, &tempVal, 1))
+    return false;
+
+  sfe_qma6100p_fsr_bitfield_t fsr;
+  fsr.all = tempVal;
+  range = fsr.bits.range;
+  
+  return range;
 }
 
 //////////////////////////////////////////////////
@@ -134,7 +145,7 @@ int QwDevQMA6100P::getRange(){
 //
 // Parameter:
 // enable - enable/disables the data ready bit.
-bool QwDevQMA6100P::enableDataEngine(bool enable)
+bool QMA6100P::enableDataEngine(bool enable)
 {
   uint8_t tempVal;
 
@@ -164,7 +175,7 @@ bool QwDevQMA6100P::enableDataEngine(bool enable)
   return true;
 }
 
-bool QwDevQMA6100P::setFifoMode(uint8_t fifo_mode){
+bool QMA6100P::setFifoMode(uint8_t fifo_mode){
 
   uint8_t tempVal;
 
@@ -189,14 +200,11 @@ bool QwDevQMA6100P::setFifoMode(uint8_t fifo_mode){
 //
 // Retrieves the raw register values representing accelerometer data.
 //
-// Note: this method does not check if the registers contain valid data.
-// The user needs to do that externally by calling dataReady
-// or using the INT pins to indicate that data is ready.
 //
 // Parameter:
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 //
-bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
+bool QMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 {
   uint8_t tempRegData[6] = {0};
   int16_t tempData = 0;
@@ -209,7 +217,7 @@ bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
     tempData = (int16_t)(((uint16_t)(tempRegData[1] << 8)) | (tempRegData[0]));
     rawAccelData->xData = tempData >> 2;
   }
-  // check newData_Z
+  // check newData_Y
   if(tempRegData[2] & 0x1){
     tempData = (int16_t)(((uint16_t)(tempRegData[3] << 8)) | (tempRegData[2]));
     rawAccelData->yData = tempData >> 2;
@@ -226,7 +234,7 @@ bool QwDevQMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 //////////////////////////////////////////////////////////////////////////////////
 // readRegisterRegion()
 
-bool QwDevQMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, int len)
+bool QMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, int len)
 {
   Wire.beginTransmission(QMA6100P_ADDRESS_HIGH);
   Wire.write(registerAddress); // Register address to read from
@@ -254,7 +262,7 @@ bool QwDevQMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorD
 //////////////////////////////////////////////////////////////////////////////////
 // writeRegisterRegion()
 
-bool QwDevQMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
+bool QMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
 {
   Wire.beginTransmission(QMA6100P_ADDRESS_HIGH);
   Wire.write(registerAddress); // Register address to write to
@@ -272,18 +280,15 @@ bool QwDevQMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
 //***************************************** QMA6100P ******************************************************
 
 
-bool QwDevQMA6100P::begin()
+bool QMA6100P::begin()
 {
   if (getUniqueID() != QMA6100P_CHIP_ID)
-    return false;
-
-  if(!calibrateOffsets())
     return false;
 
   return true;
 }
 
-bool QwDevQMA6100P::calibrateOffsets()
+bool QMA6100P::calibrateOffsets()
 {
     outputData data;
     int numSamples = 100;
@@ -296,16 +301,16 @@ bool QwDevQMA6100P::calibrateOffsets()
         if (!getAccelData(&data))
             return false;
         
-        xSum += data.xData * SENSORS_GRAVITY_EARTH;
-        ySum += data.yData * SENSORS_GRAVITY_EARTH;
-        zSum += data.zData * SENSORS_GRAVITY_EARTH;
+        xSum += data.xData;
+        ySum += data.yData;
+        zSum += data.zData - 1;
         delay(10);
     }
 
     // Calculate average
     xOffset = xSum / numSamples;
     yOffset = ySum / numSamples;
-    zOffset = zSum / numSamples + SENSORS_GRAVITY_EARTH;  // Assuming z-axis aligned with gravity
+    zOffset = zSum / numSamples;  // Assuming z-axis aligned with gravity
 
     return true;
 }
@@ -318,7 +323,7 @@ bool QwDevQMA6100P::calibrateOffsets()
 // Parameter:
 // *userData - a pointer to the user's data struct that will hold acceleromter data.
 //
-bool QwDevQMA6100P::getAccelData(outputData *userData)
+bool QMA6100P::getAccelData(outputData *userData)
 {
 
   if(!getRawAccelRegisterData(&rawAccelData))
@@ -339,7 +344,7 @@ bool QwDevQMA6100P::getAccelData(outputData *userData)
 // *userData - a pointer to the user's data struct that will hold acceleromter data.
 // *rawAccelData - a pointer to the data struct that holds acceleromter X/Y/Z data.
 //
-bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccelData)
+bool QMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccelData)
 {
   if (_range < 0) // If the G-range is unknown, read it
   {
@@ -388,8 +393,15 @@ bool QwDevQMA6100P::convAccelData(outputData *userAccel, rawOutputData *rawAccel
   return true;
 }
 
-void QwDevQMA6100P::offsetValues(float &x, float &y, float &z) {
-  x = x * SENSORS_GRAVITY_EARTH - xOffset;
-  y = y * SENSORS_GRAVITY_EARTH - yOffset;
-  z = z * SENSORS_GRAVITY_EARTH - zOffset;
+void QMA6100P::setOffset(float x, float y, float z){
+  xOffset = x;
+  yOffset = y;
+  zOffset = z;
+}
+
+
+void QMA6100P::offsetValues(float &x, float &y, float &z) {
+  x = x - xOffset;
+  y = y - yOffset;
+  z = z - zOffset;
 }

@@ -39,7 +39,7 @@ struct rawOutputData
   int16_t zData;
 };
 
-class QwDevQMA6100P
+class QMA6100P
 {
 public:
 
@@ -61,9 +61,10 @@ public:
   bool enableDataEngine(bool enable = true);
   bool getRawAccelRegisterData(rawOutputData *);
   void offsetValues(float &x, float &y, float &z);
+  void setOffset(float x, float y, float z);
   bool setFifoMode(uint8_t fifo_mode);
 
-  int getRange();
+  uint8_t getRange();
 
   rawOutputData rawAccelData;
 
