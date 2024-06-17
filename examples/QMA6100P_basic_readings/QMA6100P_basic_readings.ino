@@ -16,10 +16,6 @@ QMA6100P qmaAccel;
 
 outputData myData; // Struct for the accelerometer's data
 
-float largest_gX = 0;
-float largest_gY = 0;
-float largest_gZ = 0;
-
 #include <SoftwareSerial.h>
 
 SoftwareSerial softSerial(USB_RX_PIN, USB_TX_PIN);
