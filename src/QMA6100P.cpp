@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "QMA6100P.h"
 
 uint8_t QMA6100P::getUniqueID()
