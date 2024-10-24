@@ -236,21 +236,21 @@ bool QMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 
 bool QMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, int len)
 {
-  _i2cPort.beginTransmission(_deviceAddress);
-  _i2cPort.write(registerAddress); // Register address to read from
-  uint8_t err = _i2cPort.endTransmission(); // Send the request without stopping the transmission
+  _i2cPort->beginTransmission(_deviceAddress);
+  _i2cPort->write(registerAddress); // Register address to read from
+  uint8_t err = _i2cPort->endTransmission(); // Send the request without stopping the transmission
 
   if (err > 0) {
     return false;
   }
 
-  uint8_t bytesAvailable = _i2cPort.requestFrom(static_cast<int>(_deviceAddress), static_cast<int>(len), static_cast<int>(true)); // Request len byte of data
+  uint8_t bytesAvailable = _i2cPort->requestFrom(static_cast<int>(_deviceAddress), static_cast<int>(len), static_cast<int>(true)); // Request len byte of data
 
   delay(10);
 
   if (bytesAvailable >= len) {
     for (uint8_t i = 0; i < len; i++) {
-      sensorData[i] = _i2cPort.read(); // Read the bytes from the sensor and store them in the array pointed to by sensorData
+      sensorData[i] = _i2cPort->read(); // Read the bytes from the sensor and store them in the array pointed to by sensorData
     }
     return true; // Return true if the read operation was successful
   } else {
@@ -264,10 +264,10 @@ bool QMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, 
 
 bool QMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
 {
-  _i2cPort.beginTransmission(_deviceAddress);
-  _i2cPort.write(registerAddress); // Register address to write to
-  _i2cPort.write(data); // Data to write, dereferenced from the pointer
-  uint8_t err = _i2cPort.endTransmission(); // End the transmission
+  _i2cPort->beginTransmission(_deviceAddress);
+  _i2cPort->write(registerAddress); // Register address to write to
+  _i2cPort->write(data); // Data to write, dereferenced from the pointer
+  uint8_t err = _i2cPort->endTransmission(); // End the transmission
 
   if (err > 0) {
     return false; // Return false if there's a communication error
