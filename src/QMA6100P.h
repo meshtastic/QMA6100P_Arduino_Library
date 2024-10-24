@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include <Wire.h>
 #include "QMA6100P_regs.h"
 
@@ -43,7 +44,7 @@ class QMA6100P
 {
 public:
 
-  bool begin();
+  bool begin(uint8_t addr, TwoWire *port);
   bool calibrateOffsets();
   uint8_t getUniqueID();
   bool writeRegisterByte(uint8_t registerAddress, uint8_t data);
@@ -80,5 +81,7 @@ public:
   float zOffset = 0.0;
 
 protected:
+  TwoWire *_i2cPort; //The generic connection to user's chosen I2C hardware
+  uint8_t _deviceAddress; //Keeps track of I2C address. set in .begin()
   int _range = -1; // Keep a local copy of the range. Default to "unknown" (-1).
 };

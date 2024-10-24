@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "QMA6100P.h"
 
 uint8_t QMA6100P::getUniqueID()
@@ -237,21 +236,21 @@ bool QMA6100P::getRawAccelRegisterData(rawOutputData *rawAccelData)
 
 bool QMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, int len)
 {
-  Wire.beginTransmission(QMA6100P_ADDRESS_HIGH);
-  Wire.write(registerAddress); // Register address to read from
-  uint8_t err = Wire.endTransmission(); // Send the request without stopping the transmission
+  _i2cPort.beginTransmission(_deviceAddress);
+  _i2cPort.write(registerAddress); // Register address to read from
+  uint8_t err = _i2cPort.endTransmission(); // Send the request without stopping the transmission
 
   if (err > 0) {
     return false;
   }
 
-  uint8_t bytesAvailable = Wire.requestFrom(static_cast<int>(QMA6100P_ADDRESS_HIGH), static_cast<int>(len), static_cast<int>(true)); // Request len byte of data
+  uint8_t bytesAvailable = _i2cPort.requestFrom(static_cast<int>(_deviceAddress), static_cast<int>(len), static_cast<int>(true)); // Request len byte of data
 
   delay(10);
 
   if (bytesAvailable >= len) {
     for (uint8_t i = 0; i < len; i++) {
-      sensorData[i] = Wire.read(); // Read the bytes from the sensor and store them in the array pointed to by sensorData
+      sensorData[i] = _i2cPort.read(); // Read the bytes from the sensor and store them in the array pointed to by sensorData
     }
     return true; // Return true if the read operation was successful
   } else {
@@ -265,10 +264,10 @@ bool QMA6100P::readRegisterRegion(uint8_t registerAddress, uint8_t* sensorData, 
 
 bool QMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
 {
-  Wire.beginTransmission(QMA6100P_ADDRESS_HIGH);
-  Wire.write(registerAddress); // Register address to write to
-  Wire.write(data); // Data to write, dereferenced from the pointer
-  uint8_t err = Wire.endTransmission(); // End the transmission
+  _i2cPort.beginTransmission(_deviceAddress);
+  _i2cPort.write(registerAddress); // Register address to write to
+  _i2cPort.write(data); // Data to write, dereferenced from the pointer
+  uint8_t err = _i2cPort.endTransmission(); // End the transmission
 
   if (err > 0) {
     return false; // Return false if there's a communication error
@@ -281,8 +280,10 @@ bool QMA6100P::writeRegisterByte(uint8_t registerAddress, uint8_t data)
 //***************************************** QMA6100P ******************************************************
 
 
-bool QMA6100P::begin()
+bool QMA6100P::begin(uint8_t addr, TwoWire *port)
 {
+  _i2cPort = port;
+  _deviceAddress = addr;
   if (getUniqueID() != QMA6100P_CHIP_ID)
     return false;
 
